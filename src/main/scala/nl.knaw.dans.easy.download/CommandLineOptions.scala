@@ -22,7 +22,7 @@ class CommandLineOptions(args: Array[String], configuration: Configuration) exte
   editBuilder(_.setHelpWidth(110))
   printedName = "easy-download"
   private val SUBCOMMAND_SEPARATOR = "---\n"
-  val description: String = s"""Download files or bags from the EASY bag-store"""
+  val description: String = s"""Download files from the archive"""
   val synopsis: String =
     s"""
        |  $printedName (synopsis of command line parameters)
