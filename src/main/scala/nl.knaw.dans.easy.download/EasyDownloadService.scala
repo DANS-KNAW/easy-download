@@ -27,6 +27,7 @@ import org.scalatra.servlet.ScalatraListener
 import scala.util.Try
 
 class EasyDownloadService(serverPort: Int, app: EasyDownloadApp) extends DebugEnhancedLogging {
+
   import logger._
 
   private val server = new Server(serverPort)
@@ -41,7 +42,7 @@ class EasyDownloadService(serverPort: Int, app: EasyDownloadApp) extends DebugEn
     }
   })
   server.setHandler(context)
-  info(s"HTTP port is ${serverPort}")
+  info(s"HTTP port is ${ serverPort }")
 
   def start(): Try[Unit] = Try {
     info("Starting service...")

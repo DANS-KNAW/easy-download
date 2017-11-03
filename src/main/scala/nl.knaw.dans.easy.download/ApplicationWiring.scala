@@ -23,7 +23,7 @@ import nl.knaw.dans.lib.logging.DebugEnhancedLogging
  * @param configuration the application configuration
  */
 class ApplicationWiring(configuration: Configuration) extends DebugEnhancedLogging
-// Mix in components
+  // Mix in components
 {
   // Configure components with configuration settings.
 }

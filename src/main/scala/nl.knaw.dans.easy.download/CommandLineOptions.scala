@@ -41,7 +41,7 @@ class CommandLineOptions(args: Array[String], configuration: Configuration) exte
        |""".stripMargin)
   //val url = opt[String]("someOption", noshort = true, descr = "Description of the option", default = app.someProperty)
 
-  val runService = new Subcommand("run-service") {
+  val runService: Subcommand = new Subcommand("run-service") {
     descr(
       "Starts EASY Download as a daemon that services HTTP requests")
     footer(SUBCOMMAND_SEPARATOR)

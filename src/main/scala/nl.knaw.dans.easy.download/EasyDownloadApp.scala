@@ -15,7 +15,7 @@
  */
 package nl.knaw.dans.easy.download
 
-import scala.util.{ Try, Success }
+import scala.util.{ Success, Try }
 
 class EasyDownloadApp(wiring: ApplicationWiring) extends AutoCloseable {
 
