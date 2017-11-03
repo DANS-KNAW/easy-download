@@ -1,0 +1,14 @@
+[Unit]
+Description=EASY Download Service
+
+[Service]
+ExecStart=/bin/java \
+   -Dlogback.configurationFile=/etc/opt/dans.knaw.nl/easy-download/logback-service.xml \
+   -Dapp.home=/opt/dans.knaw.nl/easy-download \
+   -jar /opt/dans.knaw.nl/easy-download/bin/easy-download.jar run-service
+
+User=easy-download
+Group=easy-download
+
+[Install]
+WantedBy=multi-user.target
