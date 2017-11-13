@@ -14,21 +14,125 @@
 # limitations under the License.
 #
 
+#- hosts: "test"
+#  become: yes
+#  roles:
+#    - dans.local-test-vm-base
+#    - dans.local-yum-repo
+#
+#- hosts: "test"
+#  become: yes
+#  tasks:
+#  - name: Installing package
+#    yum:
+#      name: dans.knaw.nl-easy-download
+#      state: latest
+#
+#  - service:
+#      name: easy-download
+#      state: started
+#      enabled: yes
+
+
+
+
 - hosts: "test"
   become: yes
+  vars:
+    local_test_vm_base_backend_port: 20160
   roles:
     - dans.local-test-vm-base
     - dans.local-yum-repo
 
+########### bag store
+
+- hosts: "test"
+  vars:
+    dans_config_base: "/etc/opt/dans.knaw.nl"
+    stores_dir: "/data/bag-stores"
+    bag_stores:
+      - { name: "pdbs",      base_dir: "{{ stores_dir }}/pdbs" }
+      - { name: "easy",      base_dir: "{{ stores_dir }}/easy" }
+      - { name: "pan",       base_dir: "{{ stores_dir }}/pan" }
+  become: yes
+  tasks:
+
+  - name: Installing bag-store package
+    yum:
+      name: "dans.knaw.nl-easy-bag-store"
+      state: latest
+
+  - name: Configure bag stores
+    lineinfile:
+        dest: "{{ dans_config_base }}/easy-bag-store/stores.properties"
+        line: "{{ item.name }}={{ item.base_dir }}"
+    with_items: "{{ bag_stores }}"
+
+  - name: Create empty bag-store base directories
+    file:
+      path: "{{ stores_dir }}/{{ item.name }}"
+      state: "directory"
+      owner: "easy-bag-store"
+      group: "easy-bag-store"
+      mode: "0775"
+    with_items: "{{ bag_stores }}"
+
+  - name: Check whether the bags exist
+    stat:
+      path: "{{ stores_dir }}/pdbs/ab"
+    register: bag_dir_stat
+
+  - name: Copy test-bags to server
+    copy: # bag-store knows it with uuid 40594b6d-8378-4260-b96b-13b57beadf7c
+      src: "../../test/resources/vault/stores/pdbs/bags/9da0541a-d2c8-432e-8129-979a9830b427"
+      dest: "{{ stores_dir }}/pdbs/ab/123456789012345678901234567890"
+      mode: "0775"
+      directory_mode: "0775"
+    when: "bag_dir_stat.stat.exists == False"
+
+  - name: Copy test-bags to server
+    copy: # bag-store knows it with uuid ab123456-7890-1234-5678-901234567890
+      src: "../../test/resources/vault/stores/pdbs/bags/1afcc4e9-2130-46cc-8faf-2663e199b218"
+      dest: "{{ stores_dir }}/pdbs/40/594b6d83784260b96b13b57beadf7c"
+      mode: "0775"
+      directory_mode: "0775"
+    when: "bag_dir_stat.stat.exists == False"
+
+  - name: Find hidden files in or between test bags
+    find:
+      paths: "{{ stores_dir }}"
+      patterns: ".DS_Store"
+      hidden: "yes"
+      recurse: "yes"
+    register: hidden_files
+
+  - name: Remove hidden files from test bags
+    file:
+      path: "{{ item.path }}"
+      state: "absent"
+    with_items: "{{ hidden_files.files }}"
+
+
+  - service:
+      name: "easy-bag-store"
+      state: restarted
+      enabled: yes
+
+########### the intended service
+
 - hosts: "test"
   become: yes
   tasks:
-  - name: Installing package
-    yum:
-      name: dans.knaw.nl-easy-download
-      state: latest
+    - name: Installing package
+      yum:
+        name: dans.knaw.nl-easy-download
+        state: latest
 
-  - service:
-      name: easy-download
-      state: started
-      enabled: yes
+    - service:
+#        name: dans.knaw.nl-easy-download
+        name: easy-download
+        state: started
+        enabled: yes
+
+
+

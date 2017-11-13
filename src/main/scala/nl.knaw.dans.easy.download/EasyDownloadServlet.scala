@@ -13,10 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package nl.knaw.dans.easy.download
 
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.scalatra._
+
+
+
+
+
 
 class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with DebugEnhancedLogging {
   import app._
