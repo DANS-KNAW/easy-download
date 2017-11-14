@@ -15,8 +15,6 @@
  */
 package nl.knaw.dans.easy
 
-import java.nio.file.Paths
-
 import scala.util.{ Failure, Success, Try }
 
 package object download {

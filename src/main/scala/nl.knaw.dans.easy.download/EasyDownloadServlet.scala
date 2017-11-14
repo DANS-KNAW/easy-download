@@ -20,13 +20,7 @@ import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.scalatra._
 
 
-
-
-
-
 class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with DebugEnhancedLogging {
-  import app._
-  import logger._
 
   get("/") {
     contentType = "text/plain"
