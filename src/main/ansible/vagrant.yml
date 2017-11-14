@@ -14,24 +14,6 @@
 # limitations under the License.
 #
 
-#- hosts: "test"
-#  become: yes
-#  roles:
-#    - dans.local-test-vm-base
-#    - dans.local-yum-repo
-#
-#- hosts: "test"
-#  become: yes
-#  tasks:
-#  - name: Installing package
-#    yum:
-#      name: dans.knaw.nl-easy-download
-#      state: latest
-#
-#  - service:
-#      name: easy-download
-#      state: started
-#      enabled: yes
 - hosts: "test"
   become: yes
   vars:
