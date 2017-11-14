@@ -32,10 +32,6 @@
 #      name: easy-download
 #      state: started
 #      enabled: yes
-
-
-
-
 - hosts: "test"
   become: yes
   vars:
