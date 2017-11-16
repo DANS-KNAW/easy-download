@@ -15,12 +15,14 @@
  */
 package nl.knaw.dans.easy.download
 
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+
 import scala.util.{ Success, Try }
 
-class EasyDownloadApp(wiring: ApplicationWiring) extends AutoCloseable {
+class EasyDownloadApp(wiring: ApplicationWiring) extends AutoCloseable
+  with DebugEnhancedLogging {
 
-
-  // The application's API here. This is what is used by driver or entry-point objects.
+//  def getAllBags(): Try[String] = wiring.getAllBags()
 
   def init(): Try[Unit] = {
     // Do any initialization of the application here. Typical examples are opening

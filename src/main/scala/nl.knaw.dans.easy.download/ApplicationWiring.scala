@@ -17,13 +17,24 @@ package nl.knaw.dans.easy.download
 
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
+import scala.util.Try
+
 /**
  * Initializes and wires together the components of this application.
  *
  * @param configuration the application configuration
  */
-class ApplicationWiring(configuration: Configuration) extends DebugEnhancedLogging
-  // Mix in components
-{
-  // Configure components with configuration settings.
+class ApplicationWiring(configuration: Configuration) extends DebugEnhancedLogging {
+
+//  def getAllBags(): Try[FeedBackMessage] = {
+//
+//        contentType = "text/plain"
+//        val (includeActive, includeInactive) = includedStates(params.get("state"))
+//        bagStores.enumBags(includeActive, includeInactive)
+//          .map(bagIds => Ok(bagIds.mkString("\n")))
+//          .getOrRecover(e => {
+//            logger.error("Unexpected type of failure", e)
+//            InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
+//          })
+//  }
 }
