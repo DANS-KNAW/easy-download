@@ -17,8 +17,10 @@ package nl.knaw.dans.easy.download
 
 import java.net.{ HttpURLConnection, URL }
 
+import ch.qos.logback.core.util.FileUtil
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.scalatra._
+import org.apache.commons.io.IOUtils
 
 import scala.util.{ Failure, Success, Try }
 
@@ -33,40 +35,31 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with Deb
         con.setConnectTimeout(5000)
         con.setReadTimeout(5000)
         con.setRequestMethod("GET")
-        con.setInstanceFollowRedirects(true)
         val inputStream = con.getInputStream
         val outputStream = response.getOutputStream
-        val buffSize = 64 * 1024
-        org.scalatra.util.io.copy(inputStream, outputStream, buffSize)
-        outputStream.flush()
+        IOUtils.copy(inputStream, outputStream)
         outputStream.close()
-        if(con != null) con.disconnect()
+        con.disconnect()
       case Failure(e) =>
         e match {
-          case e: ClassCastException => Ok("Cannot cast the url to string")
           case e => logger.error("Error while downloading", e)
         }
     }
   }
 
   get("/") {
-    val url = "http://localhost:20110/stores/pdbs/bags"
-    copyStream(url)
+    copyStream("http://localhost:20110/stores/pdbs/bags")
   }
 
   get("/:uuid/*") {
-    val uuidStr = params("uuid")
     multiParams("splat") match {
       case Seq(path) =>
-        val url = s"http://localhost:20110/stores/pdbs/bags/$uuidStr/$path"
-        copyStream(url)
+        copyStream(s"http://localhost:20110/stores/pdbs/bags/${params("uuid")}/$path")
     }
   }
 
   get("/:uuid/?") {
-    val uuidStr = params("uuid")
-    val url = s"http://localhost:20110/stores/pdbs/bags/$uuidStr"
-    copyStream(url)
+   copyStream(s"http://localhost:20110/stores/pdbs/bags/${params("uuid")}")
   }
 
 }
