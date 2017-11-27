@@ -15,6 +15,10 @@
  */
 package nl.knaw.dans.easy.download
 
+import java.io.OutputStream
+import java.nio.file.Path
+import java.util.UUID
+
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
 import scala.util.{ Success, Try }
@@ -22,7 +26,10 @@ import scala.util.{ Success, Try }
 class EasyDownloadApp(wiring: ApplicationWiring) extends AutoCloseable
   with DebugEnhancedLogging {
 
-//  def getAllBags(): Try[String] = wiring.getAllBags()
+
+  def copyStream(bagId: UUID, path: Path, outputStream: OutputStream): Try[Unit] = {
+    wiring.bagStore.copyStream(bagId, path, outputStream)
+  }
 
   def init(): Try[Unit] = {
     // Do any initialization of the application here. Typical examples are opening

@@ -15,26 +15,20 @@
  */
 package nl.knaw.dans.easy.download
 
-import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import java.net.URI
 
-import scala.util.Try
+import nl.knaw.dans.easy.download.components.BagStoreComponent
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
 /**
  * Initializes and wires together the components of this application.
  *
  * @param configuration the application configuration
  */
-class ApplicationWiring(configuration: Configuration) extends DebugEnhancedLogging {
+class ApplicationWiring(configuration: Configuration) extends DebugEnhancedLogging
+  with BagStoreComponent {
 
-//  def getAllBags(): Try[FeedBackMessage] = {
-//
-//        contentType = "text/plain"
-//        val (includeActive, includeInactive) = includedStates(params.get("state"))
-//        bagStores.enumBags(includeActive, includeInactive)
-//          .map(bagIds => Ok(bagIds.mkString("\n")))
-//          .getOrRecover(e => {
-//            logger.error("Unexpected type of failure", e)
-//            InternalServerError(s"[${ new DateTime() }] Unexpected type of failure. Please consult the logs")
-//          })
-//  }
+  override val bagStore: BagStore = new BagStore {
+    override val baseUri: URI = new URI(configuration.properties.getString("bag-store.url"))
+  }
 }

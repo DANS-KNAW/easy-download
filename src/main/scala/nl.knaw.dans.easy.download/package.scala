@@ -27,10 +27,6 @@ package object download extends DebugEnhancedLogging {
   case class HttpStatusException(msg: String, response: HttpResponse[String])
     extends Exception(s"$msg - ${ response.statusLine }, details: ${ response.body }")
 
-  case class MixedResultsException[T](results: Seq[T], thrown: Throwable)
-  // TODO evolve into candidate for dans.lib.error with takeUntilFailure
-    extends Exception(thrown.getMessage, thrown)
-
   implicit class TryExtensions2[T](val t: Try[T]) extends AnyVal {
     // TODO candidate for dans-scala-lib
     def unsafeGetOrThrow: T = {
