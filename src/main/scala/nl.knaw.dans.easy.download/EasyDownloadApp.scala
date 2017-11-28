@@ -28,7 +28,7 @@ class EasyDownloadApp(wiring: ApplicationWiring) extends AutoCloseable
 
 
   def copyStream(bagId: UUID, path: Path, outputStream: OutputStream): Try[Unit] = {
-    wiring.bagStore.copyStream(bagId, path, outputStream)
+    wiring.bagStore.copyStream(bagId, path)(outputStream)
   }
 
   def init(): Try[Unit] = {

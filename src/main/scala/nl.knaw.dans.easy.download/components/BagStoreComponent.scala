@@ -33,7 +33,13 @@ trait BagStoreComponent extends DebugEnhancedLogging {
   trait BagStore {
     val baseUri: URI
 
-    def copyStream(bagId: UUID, path: Path, outputStream: OutputStream): Try[Unit] = {
+//    copyStream(uuid, path, os)
+//    copyStream(uuid, path)(os)
+//    copyStream(uuid, path)(os)
+//  def copyStream(bagId: UUID, path: Path, outputStream: OutputStream): Try[Unit]
+//  def copyStream(bagId: UUID, path: Path)(outputStream: OutputStream): Try[Unit]
+//  copyStream :: (UUID, Path) -> (OutputStream -> Try[Unit])
+    def copyStream(bagId: UUID, path: Path): OutputStream => Try[Unit] = { outputStream =>
       for {
         f <- Try(URLEncoder.encode(path.toString, "UTF8"))
         uri <- Try(baseUri.resolve(s"stores/pdbs/bags/$bagId/$f")) // TODO drop 'stores/pdbs' when easy-bag-store#43 not only merged but also versioned

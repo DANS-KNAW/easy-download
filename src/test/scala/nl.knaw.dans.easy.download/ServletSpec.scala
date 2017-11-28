@@ -15,10 +15,11 @@
  */
 package nl.knaw.dans.easy.download
 
-import java.io.OutputStream
-import java.nio.file.Paths
+import java.io.{ FileOutputStream, OutputStream }
+import java.nio.file.{ Path, Paths }
 import java.util.UUID
 
+import nl.knaw.dans.easy.download.components.BagStoreComponent
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.eclipse.jetty.http.HttpStatus._
 import org.scalamock.scalatest.MockFactory
@@ -29,14 +30,15 @@ import scalaj.http.HttpResponse
 
 class ServletSpec extends TestSupportFixture with ServletFixture
   with ScalatraSuite
-  with MockFactory {
+  with MockFactory{
 
-  private class Wiring extends ApplicationWiring(new Configuration("", new PropertiesConfiguration() {
-    // need a constructor without arguments for the mock, the constructor needs a valid property
+  private val wiring = new ApplicationWiring(new Configuration("", new PropertiesConfiguration() {
     addProperty("bag-store.url", "http://localhost:20110/")
-  }))
+  })) {
+    // mocking at a low level to test the chain of error handling
+    override val bagStore: BagStore = mock[BagStore]
+  }
   private val uuid = UUID.randomUUID()
-  private val wiring = mock[Wiring] // mocking at a low level to test the chain of error handling
   addServlet(new EasyDownloadServlet(new EasyDownloadApp(wiring)), "/*")
 
   "get /" should "return the message that the service is running" in {
@@ -47,17 +49,16 @@ class ServletSpec extends TestSupportFixture with ServletFixture
   }
 
   "get /:uuid/*" should "return file" in {
-    wiring.bagStore.copyStream _ expects (*,*,*) once() returning Success("EASY-File:someone")
+    val path = Paths.get("some.file")
+    (wiring.bagStore.copyStream( _: UUID, _: Path)) expects (uuid, path) once() returning (os => {
+      os.write(s"content of $uuid/$path ")
+      Success(())
+    })
 
     get(s"$uuid/some.file") {
       status shouldBe OK_200
       body shouldBe
-        s"""{
-           |  "itemId":"$uuid/some.file",
-           |  "owner":"someone",
-           |  "accessibleTo":"KNOWN",
-           |  "visibleTo":"KNOWN"
-           |}""".stripMargin
+        s"content of $uuid/$path "
     }
   }
 
