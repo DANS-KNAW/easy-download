@@ -37,11 +37,11 @@ class ServletSpec extends TestSupportFixture with ServletFixture
   }))
   private val uuid = UUID.randomUUID()
   private val wiring = mock[Wiring] // mocking at a low level to test the chain of error handling
-  addServlet(new EasyAuthInfoServlet(new EasyAuthInfoApp(wiring)), "/*")
+  addServlet(new EasyDownloadServlet(new EasyDownloadApp(wiring)), "/*")
 
   "get /" should "return the message that the service is running" in {
     get("/") {
-      body shouldBe "EASY Auth Info Service running..."
+      body shouldBe "EASY Download Service running..."
       status shouldBe OK_200
     }
   }
