@@ -51,7 +51,7 @@ class ServletSpec extends TestSupportFixture with ServletFixture
   "get /:uuid/*" should "return file" in {
     val path = Paths.get("some.file")
     (wiring.bagStore.copyStream( _: UUID, _: Path)) expects (uuid, path) once() returning (os => {
-      os.write(s"content of $uuid/$path ")
+      os().write(s"content of $uuid/$path ")
       Success(())
     })
 

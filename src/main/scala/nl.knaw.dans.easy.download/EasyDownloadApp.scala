@@ -27,8 +27,8 @@ class EasyDownloadApp(wiring: ApplicationWiring) extends AutoCloseable
   with DebugEnhancedLogging {
 
 
-  def copyStream(bagId: UUID, path: Path, outputStream: OutputStream): Try[Unit] = {
-    wiring.bagStore.copyStream(bagId, path)(outputStream)
+  def copyStream(bagId: UUID, path: Path, outputStreamProducer: () => OutputStream): Try[Unit] = {
+    wiring.bagStore.copyStream(bagId, path)(outputStreamProducer)
   }
 
   def init(): Try[Unit] = {

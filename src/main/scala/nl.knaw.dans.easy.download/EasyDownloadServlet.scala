@@ -36,7 +36,7 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with Deb
   get("/:uuid/*") {
     (getUUID, getPath) match {
       case (Success(_), Success(None)) => BadRequest("file path is empty")
-      case (Success(uuid), Success(Some(path))) => respond(uuid, app.copyStream(uuid, path, response.outputStream)) // TODO get(path) can throw
+      case (Success(uuid), Success(Some(path))) => respond(uuid, app.copyStream(uuid, path, () => response.outputStream)) // TODO get(path) can throw
       case (Failure(t), _) => BadRequest(t.getMessage)
       case _ => InternalServerError("not expected exception")
     }
@@ -55,7 +55,8 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with Deb
       case Success(()) => Ok()
       case Failure(HttpStatusException(message, HttpResponse(_, SERVICE_UNAVAILABLE_503, _))) => ServiceUnavailable(message)
       case Failure(HttpStatusException(message, HttpResponse(_, REQUEST_TIMEOUT_408, _))) => RequestTimeout(message)
-      case Failure(HttpStatusException(message, HttpResponse(_, NOT_FOUND_404, _))) if message.startsWith("Bag ") => NotFound(s"$uuid does not exist")
+      case Failure(HttpStatusException(message, HttpResponse(_, NOT_FOUND_404, _))) => NotFound(message)
+      //case Failure(HttpStatusException(message, HttpResponse(_, status, _))) => NotFound(s"Failed with status: $status")
       case Failure(t) =>
         logger.error(t.getMessage, t)
         InternalServerError("not expected exception")
