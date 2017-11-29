@@ -15,6 +15,9 @@
  */
 package nl.knaw.dans.easy.download
 
+import java.net.URI
+
+import nl.knaw.dans.easy.download.components.BagStoreComponent
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
 /**
@@ -23,7 +26,9 @@ import nl.knaw.dans.lib.logging.DebugEnhancedLogging
  * @param configuration the application configuration
  */
 class ApplicationWiring(configuration: Configuration) extends DebugEnhancedLogging
-  // Mix in components
-{
-  // Configure components with configuration settings.
+  with BagStoreComponent {
+
+  override val bagStore: BagStore = new BagStore {
+    override val baseUri: URI = new URI(configuration.properties.getString("bag-store.url"))
+  }
 }

@@ -33,7 +33,9 @@ ARGUMENTS
 EXAMPLES
 --------
 
-    easy-download -o value
+    curl http://test.dans.knaw.nl:20110/stores/pdbs/bags
+    curl http://test.dans.knaw.nl:20110/stores/pdbs/bags/40594b6d-8378-4260-b96b-13b57beadf7c
+    curl http://test.dans.knaw.nl:20110/stores/pdbs/bags/40594b6d-8378-4260-b96b-13b57beadf7c/bag-info.txt
 
 
 INSTALLATION AND CONFIGURATION
