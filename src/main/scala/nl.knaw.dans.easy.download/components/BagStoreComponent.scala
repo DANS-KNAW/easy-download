@@ -26,7 +26,7 @@ import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.io.IOUtils
 
 import scala.util.{ Failure, Success, Try }
-import scalaj.http.Http
+import scalaj.http.{ Http, HttpResponse }
 import resource._
 
 trait BagStoreComponent extends DebugEnhancedLogging {
@@ -35,9 +35,9 @@ trait BagStoreComponent extends DebugEnhancedLogging {
   trait BagStore {
     val baseUri: URI
 
-    def test(uri: String): OutputStream => Try[Unit] = { outputStream =>
+    def test(uri: String): (() => OutputStream) => Try[Unit] = { outputStreamProducer =>
       //      Try(Http(uri.toString).method("GET").execute((is: InputStream) => IOUtils.copy(is, outputStream)))
-      val response = Http(uri).method("GET").execute(IOUtils.copyLarge(_, outputStream))
+      val response = Http(uri).method("GET").execute(IOUtils.copyLarge(_, outputStreamProducer()))
       if (response.isSuccess) {
         //Success(outputStream.write(response.body))
         logger.info("Ok, it works")
@@ -48,13 +48,13 @@ trait BagStoreComponent extends DebugEnhancedLogging {
       }
     }
 
-    def test2(uri: String): OutputStream => Unit = { outputStream =>
-      val response = Http(uri).method("GET").asBytes
-      if (response.isSuccess)
-        outputStream.write(response.body)
-      else
-        Failure(HttpStatusException("Bag this was not a success!", response.copy(body = new String(response.body))))
-    }
+//    def test2(uri: String): OutputStream => Unit = { outputStream =>
+//      val response = Http(uri).method("GET").asBytes
+//      if (response.isSuccess)
+//        outputStream.write(response.body)
+//      else
+//        Failure(HttpStatusException("Bag this was not a success!", response.copy(body = new String(response.body))))
+//    }
 
     def copyStream(bagId: UUID, path: Path): (() => OutputStream) => Try[Unit] = { outputStreamProducer =>
       for {
@@ -62,11 +62,14 @@ trait BagStoreComponent extends DebugEnhancedLogging {
         uri <- Try(baseUri.resolve(s"stores/pdbs/bags/$bagId/$f")) // TODO drop 'stores/pdbs' when easy-bag-store#43 not only merged but also versioned
 //        _ <- Try(Http(uri.toString).method("GET").execute((is: InputStream) => IOUtils.copy(is, outputStream)))
         _ <- {
-          managed(new ByteArrayOutputStream())
-            .map(os => test(uri.toString)(os).map(_ => os.writeTo(outputStreamProducer())))
-            .tried.flatten
+          // below the Richard fix
+          // otherwise I get 500 with a log warning:
+          // WARN Error Processing URI: /e04c0475-ca0c-45ec-8fee-81db75e0d38f/bag-infoxxx.txt - (java.lang.IllegalStateException) STREAM
+//          managed(new ByteArrayOutputStream())
+//            .map(os => test(uri.toString)(os).map(_ => os.writeTo(outputStreamProducer())))
+//            .tried.flatten
 
-
+          test(uri.toString)(outputStreamProducer)
 //          test(uri.toString)(outputStream)
         }
       } yield ()
