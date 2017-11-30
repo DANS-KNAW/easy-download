@@ -38,6 +38,7 @@ trait BagStoreComponent extends DebugEnhancedLogging {
     private def copyStreamHttp(uri: String): (() => OutputStream) => Try[Unit] = { outputStreamProducer =>
       val response = Http(uri).method("GET").exec {
         case (OK_200, _, is) => IOUtils.copyLarge(is, outputStreamProducer())
+        case _ => // do nothing
       }
       if (response.isSuccess) Success(())
       else Failure(HttpStatusException(s"Could not download $uri", HttpResponse(response.statusLine, response.code, response.headers)))

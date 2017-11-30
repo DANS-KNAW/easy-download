@@ -15,11 +15,9 @@
  */
 package nl.knaw.dans.easy.download
 
-import java.io.{ FileOutputStream, OutputStream }
 import java.nio.file.{ Path, Paths }
 import java.util.UUID
 
-import nl.knaw.dans.easy.download.components.BagStoreComponent
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.eclipse.jetty.http.HttpStatus._
 import org.scalamock.scalatest.MockFactory
@@ -30,7 +28,7 @@ import scalaj.http.HttpResponse
 
 class ServletSpec extends TestSupportFixture with ServletFixture
   with ScalatraSuite
-  with MockFactory{
+  with MockFactory {
 
   private val wiring = new ApplicationWiring(new Configuration("", new PropertiesConfiguration() {
     addProperty("bag-store.url", "http://localhost:20110/")
@@ -50,7 +48,7 @@ class ServletSpec extends TestSupportFixture with ServletFixture
 
   "get /:uuid/*" should "return file" in {
     val path = Paths.get("some.file")
-    (wiring.bagStore.copyStream( _: UUID, _: Path)) expects (uuid, path) once() returning (os => {
+    (wiring.bagStore.copyStream(_: UUID, _: Path)) expects(uuid, path) once() returning (os => {
       os().write(s"content of $uuid/$path ")
       Success(())
     })
