@@ -70,7 +70,7 @@ trait BagStoreComponent extends DebugEnhancedLogging {
     def copyStream(bagId: UUID, path: Path): (() => OutputStream) => Try[Unit] = { outputStreamProducer =>
       for {
         f <- Try(URLEncoder.encode(path.toString, "UTF8"))
-        uri <- Try(baseUri.resolve(s"stores/pdbs/bags/$bagId/$f")) // TODO drop 'stores/pdbs' when easy-bag-store#43 not only merged but also versioned
+        uri <- Try(baseUri.resolve(s"bags/$bagId/$f"))
         _ <- copyStreamHttp(uri.toString)(outputStreamProducer)
       } yield ()
     }
