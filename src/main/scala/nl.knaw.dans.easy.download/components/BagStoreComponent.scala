@@ -16,15 +16,15 @@
 package nl.knaw.dans.easy.download.components
 
 
-import java.io.{ ByteArrayOutputStream, InputStream, OutputStream }
+import java.io.OutputStream
 import java.net.{ URI, URLEncoder }
 import java.nio.file.Path
 import java.util.UUID
-import javax.net.ssl.HttpsURLConnection
 
 import nl.knaw.dans.easy.download.HttpStatusException
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.io.IOUtils
+import org.eclipse.jetty.http.HttpStatus._
 
 import scala.util.{ Failure, Success, Try }
 import scalaj.http.{ Http, HttpResponse }
@@ -35,36 +35,12 @@ trait BagStoreComponent extends DebugEnhancedLogging {
   trait BagStore {
     val baseUri: URI
 
-    private def httpException(message: String, code: Int) = {
-      val headers = Map[String, String]("Status" -> s"$code")
-      Failure(HttpStatusException(message, HttpResponse("", code, headers)))
-    }
-
     private def copyStreamHttp(uri: String): (() => OutputStream) => Try[Unit] = { outputStreamProducer =>
-      // It seems that as soon as we write something (or even 'touch') the outputstream,
-      // Scalatra won't allow any change, like setting the status code to what we get from our respons
-
-      // Note maybe first ask for it, and only consume if it's OK?
-      // but the HEAD request is not supported by our bag store!
-      // so taste a litle byte first before eating the whole pie
-      val trial = Http(uri).method("GET").execute( is => is.read())
-      if (!trial.isSuccess) {
-        logger.error(s"Failed to start download $uri with: ${ trial.code }")
-        httpException(s"Failed to start download $uri - ${ trial.statusLine }", trial.code)
-      } else {
-        val response = Http(uri).method("GET").execute(IOUtils.copyLarge(_, outputStreamProducer()))
-        if (response.isSuccess) {
-          logger.info(s"Downloaded $uri")
-          Success(())
-        }
-        else {
-          logger.error(s"Failed downloading $uri with: ${ response.code }")
-          // Note we get 500 with a log warning like:
-          // WARN Error Processing URI: /e04c0475-ca0c-45ec-8fee-81db75e0d38f/bag-infoxxx.txt - (java.lang.IllegalStateException) STREAM
-          httpException(s"Failed to download $uri - ${ response.statusLine }", response.code)
-        }
-
+      val response = Http(uri).method("GET").exec {
+        case (OK_200, _, is) => IOUtils.copyLarge(is, outputStreamProducer())
       }
+      if (response.isSuccess) Success(())
+      else Failure(HttpStatusException(s"Could not download $uri", HttpResponse(response.statusLine, response.code, response.headers)))
     }
 
     def copyStream(bagId: UUID, path: Path): (() => OutputStream) => Try[Unit] = { outputStreamProducer =>
@@ -74,6 +50,5 @@ trait BagStoreComponent extends DebugEnhancedLogging {
         _ <- copyStreamHttp(uri.toString)(outputStreamProducer)
       } yield ()
     }
-
   }
 }
