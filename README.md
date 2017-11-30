@@ -2,14 +2,11 @@ easy-download
 ===========
 [![Build Status](https://travis-ci.org/DANS-KNAW/easy-download.png?branch=master)](https://travis-ci.org/DANS-KNAW/easy-download)
 
-<!-- Remove this comment and extend the descriptions below -->
-
 
 SYNOPSIS
 --------
 
-    easy-download (synopsis of command line parameters)
-    easy-download (... possibly multiple lines for subcommands)
+    easy-download run-service
 
 
 DESCRIPTION
@@ -30,16 +27,34 @@ ARGUMENTS
       --help   Show help message
     ---
 
+HTTP service
+------------
+
+When started with the sub-command `run-service` a REST API becomes available with HTTP method `GET` only.
+In a path pattern `*` refers to any completion of the path, placeholders for variables start with a colon,
+and optional parts are enclosed in square brackets.
+
+Path       | Action
+-----------|------------------------------------
+`/`        | Return a simple message to indicate that the service is up: "File Download Servlet running..."
+`/:uuid/*` | Return the contents of the file with bag-id `:uuid` and bag local path `*`
+
+
 EXAMPLES
 --------
 
-    curl http://test.dans.knaw.nl:20110/stores/pdbs/bags
-    curl http://test.dans.knaw.nl:20110/stores/pdbs/bags/40594b6d-8378-4260-b96b-13b57beadf7c
-    curl http://test.dans.knaw.nl:20110/stores/pdbs/bags/40594b6d-8378-4260-b96b-13b57beadf7c/bag-info.txt
+    curl http://test.dans.knaw.nl:20110/
+    curl http://test.dans.knaw.nl:20110/40594b6d-8378-4260-b96b-13b57beadf7c/data/pakbon.xml
 
 
 INSTALLATION AND CONFIGURATION
 ------------------------------
+
+
+### Depending on services
+
+* [easy-bag-store](https://github.com/DANS-KNAW/easy-bag-store/)
+
 
 ### Installation steps
 
@@ -55,6 +70,12 @@ INSTALLATION AND CONFIGURATION
 
 General configuration settings can be set in `cfg/application.properties` and logging can be configured
 in `cfg/logback.xml`. The available settings are explained in comments in aforementioned files.
+
+### Security advice
+
+Keep the depending services behind a firewall.
+Only expose the download servlet through a proxy, map for example:
+`http://easy.dans.knaw.nl/ark:/73189/` to `http://localhost:20150/` 
 
 
 BUILDING FROM SOURCE
