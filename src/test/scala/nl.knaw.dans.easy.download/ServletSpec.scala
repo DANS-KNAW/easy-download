@@ -76,8 +76,6 @@ class ServletSpec extends TestSupportFixture with ServletFixture
     }
   }
 
-
-
   private def httpException(message: String, code: Int = 404) = {
     val headers = Map[String, String]("Status" -> s"$code")
     Failure(HttpStatusException(message, HttpResponse("", code, headers)))
