@@ -56,7 +56,7 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with Deb
       case Failure(HttpStatusException(message, HttpResponse(_, SERVICE_UNAVAILABLE_503, _))) => ServiceUnavailable(message)
       case Failure(HttpStatusException(message, HttpResponse(_, REQUEST_TIMEOUT_408, _))) => RequestTimeout(message)
       case Failure(HttpStatusException(message, HttpResponse(_, NOT_FOUND_404, _))) => NotFound(message)
-      //case Failure(HttpStatusException(message, HttpResponse(_, status, _))) => NotFound(s"Failed with status: $status")
+      case Failure(HttpStatusException(message, HttpResponse(_, status, _))) => NotFound(s"Failed with status: $status")
       case Failure(t) =>
         logger.error(t.getMessage, t)
         InternalServerError("not expected exception")
