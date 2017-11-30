@@ -29,9 +29,9 @@
     dans_config_base: "/etc/opt/dans.knaw.nl"
     stores_dir: "/data/bag-stores"
     bag_stores:
-      - { name: "pdbs",      base_dir: "{{ stores_dir }}/pdbs" }
-      - { name: "easy",      base_dir: "{{ stores_dir }}/easy" }
-      - { name: "pan",       base_dir: "{{ stores_dir }}/pan" }
+      - { name: "pdbs", base_dir: "{{ stores_dir }}/pdbs" }
+      - { name: "easy", base_dir: "{{ stores_dir }}/easy" }
+      - { name: "pan",  base_dir: "{{ stores_dir }}/pan" }
   become: yes
   tasks:
 
