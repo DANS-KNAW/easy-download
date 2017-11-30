@@ -15,13 +15,11 @@
  */
 package nl.knaw.dans.easy.download.components
 
-
-import java.io.OutputStream
 import java.net.{ URI, URLEncoder }
 import java.nio.file.Path
 import java.util.UUID
 
-import nl.knaw.dans.easy.download.HttpStatusException
+import nl.knaw.dans.easy.download.{ HttpStatusException, OutputStreamProvider }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.io.IOUtils
 import org.eclipse.jetty.http.HttpStatus._
@@ -30,12 +28,13 @@ import scala.util.{ Failure, Success, Try }
 import scalaj.http.{ Http, HttpResponse }
 
 trait BagStoreComponent extends DebugEnhancedLogging {
+
   val bagStore: BagStore
 
   trait BagStore {
     val baseUri: URI
 
-    private def copyStreamHttp(uri: String): (() => OutputStream) => Try[Unit] = { outputStreamProducer =>
+    private def copyStreamHttp(uri: String): OutputStreamProvider => Try[Unit] = { outputStreamProducer =>
       val response = Http(uri).method("GET").exec {
         case (OK_200, _, is) => IOUtils.copyLarge(is, outputStreamProducer())
         case _ => // do nothing
@@ -44,7 +43,7 @@ trait BagStoreComponent extends DebugEnhancedLogging {
       else Failure(HttpStatusException(s"Could not download $uri", HttpResponse(response.statusLine, response.code, response.headers)))
     }
 
-    def copyStream(bagId: UUID, path: Path): (() => OutputStream) => Try[Unit] = { outputStreamProducer =>
+    def copyStream(bagId: UUID, path: Path): OutputStreamProvider => Try[Unit] = { outputStreamProducer =>
       for {
         f <- Try(URLEncoder.encode(path.toString, "UTF8"))
         uri <- Try(baseUri.resolve(s"bags/$bagId/$f"))

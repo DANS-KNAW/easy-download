@@ -15,6 +15,8 @@
  */
 package nl.knaw.dans.easy
 
+import java.io.OutputStream
+
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
 import scala.util.{ Failure, Success, Try }
@@ -23,6 +25,7 @@ import scalaj.http.HttpResponse
 package object download extends DebugEnhancedLogging {
 
   type FeedBackMessage = String
+  type OutputStreamProvider = () => OutputStream
 
   case class HttpStatusException(msg: String, response: HttpResponse[String])
     extends Exception(s"$msg - ${ response.statusLine }, details: ${ response.body }")
