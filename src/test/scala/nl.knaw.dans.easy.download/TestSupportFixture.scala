@@ -15,29 +15,21 @@
  */
 package nl.knaw.dans.easy.download
 
-import java.io.OutputStream
-import java.nio.file.Path
+import java.nio.file.{ Files, Path, Paths }
 import java.util.UUID
 
-import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import org.apache.commons.io.FileUtils
+import org.scalatest.{ BeforeAndAfterEach, FlatSpec, Inside, Matchers }
 
-import scala.util.{ Success, Try }
+trait TestSupportFixture extends FlatSpec with Matchers with Inside with BeforeAndAfterEach {
 
-class EasyDownloadApp(wiring: ApplicationWiring) extends AutoCloseable
-  with DebugEnhancedLogging {
-
-
-  def copyStream(bagId: UUID, path: Path, outputStreamProducer: () => OutputStream): Try[Unit] = {
-    wiring.bagStore.copyStream(bagId, path)(outputStreamProducer)
+  lazy val testDir: Path = {
+    val path = Paths.get(s"target/test/${ getClass.getSimpleName }").toAbsolutePath
+    FileUtils.deleteQuietly(path.toFile)
+    Files.createDirectories(path)
+    path
   }
 
-  def init(): Try[Unit] = {
-    // Do any initialization of the application here. Typical examples are opening
-    // databases or connecting to other services.
-    Success(())
-  }
-
-  override def close(): Unit = {
-
-  }
+  val uuidCentaur: UUID = UUID.fromString("9da0541a-d2c8-432e-8129-979a9830b427")
+  val uuidAnonymized: UUID = UUID.fromString("1afcc4e9-2130-46cc-8faf-2663e199b218")
 }

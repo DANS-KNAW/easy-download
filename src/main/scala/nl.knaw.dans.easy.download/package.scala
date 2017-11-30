@@ -15,9 +15,17 @@
  */
 package nl.knaw.dans.easy
 
-import scala.util.{ Failure, Success, Try }
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
-package object download {
+import scala.util.{ Failure, Success, Try }
+import scalaj.http.HttpResponse
+
+package object download extends DebugEnhancedLogging {
+
+  type FeedBackMessage = String
+
+  case class HttpStatusException(msg: String, response: HttpResponse[String])
+    extends Exception(s"$msg - ${ response.statusLine }, details: ${ response.body }")
 
   implicit class TryExtensions2[T](val t: Try[T]) extends AnyVal {
     // TODO candidate for dans-scala-lib
