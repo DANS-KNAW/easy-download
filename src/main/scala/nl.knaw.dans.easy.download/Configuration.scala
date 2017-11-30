@@ -27,7 +27,6 @@ case class Configuration(version: String, properties: PropertiesConfiguration)
 object Configuration {
 
   def apply(home: Path): Configuration = {
-//    val home = Paths.get(System.getProperty("app.home"))
     val cfgPath = Seq(
       Paths.get(s"/etc/opt/dans.knaw.nl/easy-download/"),
       home.resolve("cfg"))
