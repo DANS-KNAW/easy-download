@@ -36,7 +36,7 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with Deb
   get("/:uuid/*") {
     (getUUID, getPath) match {
       case (Success(_), Success(None)) => BadRequest("file path is empty")
-      case (Success(uuid), Success(Some(path))) => respond(uuid, app.copyStream(uuid, path, () => response.outputStream)) // TODO get(path) can throw
+      case (Success(uuid), Success(Some(path))) => respond(uuid, app.copyStream(uuid, path, () => response.outputStream))
       case (Failure(t), _) => BadRequest(t.getMessage)
       case _ => InternalServerError("not expected exception")
     }
