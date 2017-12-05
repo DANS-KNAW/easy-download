@@ -17,7 +17,7 @@ package nl.knaw.dans.easy.download.components
 
 import java.io.FileNotFoundException
 
-import nl.knaw.dans.easy.download.NotAllowedException
+import nl.knaw.dans.easy.download.NotAccessibleException
 import nl.knaw.dans.easy.download.components.RightsFor._
 import org.joda.time.DateTime
 
@@ -35,7 +35,7 @@ case class FileItemAuthInfo(itemId: String,
   private val visibleToValue = RightsFor.withName(visibleTo)
   private val accessibleToValue = RightsFor.withName(accessibleTo)
 
-  def canSee(user: Option[User]): Try[Unit] = {
+  def visibleTo(user: Option[User]): Try[Unit] = {
     (user, visibleToValue) match {
       case (None, ANONYMOUS) => Success(())
       case (None, _) => Failure(new FileNotFoundException(itemId))
@@ -43,16 +43,16 @@ case class FileItemAuthInfo(itemId: String,
     }
   }
 
-  def canDownload(user: Option[User]): Try[Unit] = {
+  def accessibleTo(user: Option[User]): Try[Unit] = {
     (user, accessibleToValue) match {
       case (None, ANONYMOUS) => Success(())
-      case (None, _) => Failure(NotAllowedException(s"download not allowed of: $itemId"))
+      case (None, _) => Failure(NotAccessibleException(s"download not allowed of: $itemId"))
       case (Some(_), _) => Failure(new NotImplementedError())
     }
   }
 
   def noEmbargo: Try[Unit] = {
     if (dateAvailableMilis <= DateTime.now.getMillis) Success(())
-    else Failure(NotAllowedException(s"download becomes available on $dateAvailableMilis [$itemId]"))
+    else Failure(NotAccessibleException(s"download becomes available on $dateAvailableMilis [$itemId]"))
   }
 }

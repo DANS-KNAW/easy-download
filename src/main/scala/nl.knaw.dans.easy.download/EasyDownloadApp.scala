@@ -34,9 +34,9 @@ trait EasyDownloadApp extends AutoCloseable
 
   def copyStream(bagId: UUID, path: Path, outputStreamProducer: () => OutputStream): Try[Unit] = {
     for {
-      authInfo <- authInfo.getOutInfo(bagId, path)
-      _ <- authInfo.canSee(None)
-      _ <- authInfo.canDownload(None)
+      authInfo <- authInfo.getOuthInfo(bagId, path)
+      _ <- authInfo.visibleTo(None)
+      _ <- authInfo.accessibleTo(None)
       _ <- authInfo.noEmbargo
       _ <- bagStore.copyStream(bagId, path)(outputStreamProducer).recoverWith {
         case HttpStatusException(message, HttpResponse(_, NOT_FOUND_404, _)) =>

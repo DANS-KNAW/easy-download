@@ -60,7 +60,7 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with Deb
   }
 
   private def getPath = Try {
-    multiParams("splat").find(_.trim != "").map(Paths.get(_))
+    multiParams("splat").find(!_.trim.isEmpty).map(Paths.get(_))
   }
 
   private def respond(uuid: UUID, copyResult: Try[Unit]) = {
@@ -69,8 +69,8 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with Deb
       case Failure(HttpStatusException(message, HttpResponse(_, SERVICE_UNAVAILABLE_503, _))) => ServiceUnavailable(message)
       case Failure(HttpStatusException(message, HttpResponse(_, REQUEST_TIMEOUT_408, _))) => RequestTimeout(message)
       case Failure(HttpStatusException(message, HttpResponse(_, NOT_FOUND_404, _))) => NotFound(message)
-      case Failure(NotAllowedException(message)) => Forbidden(message)
-      case Failure(t) if t.isInstanceOf[FileNotFoundException] => NotFound(t.getMessage)
+      case Failure(NotAccessibleException(message)) => Forbidden(message)
+      case Failure(t: FileNotFoundException) => NotFound(t.getMessage)
       case Failure(t) =>
         logger.error(t.getMessage, t)
         InternalServerError("not expected exception")

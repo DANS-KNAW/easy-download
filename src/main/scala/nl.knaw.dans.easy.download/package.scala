@@ -30,7 +30,7 @@ package object download extends DebugEnhancedLogging {
   case class HttpStatusException(msg: String, response: HttpResponse[String])
     extends Exception(s"$msg - ${ response.statusLine }, details: ${ response.body }")
 
-  case class NotAllowedException(message: String)
+  case class NotAccessibleException(message: String)
     extends Exception(message)
 
   case class InvalidUserPasswordException(userName: String, cause: Throwable)
