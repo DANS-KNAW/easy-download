@@ -33,6 +33,20 @@ package object download extends DebugEnhancedLogging {
   case class NotAllowedException(message: String)
     extends Exception(message)
 
+  case class InvalidUserPasswordException(userName: String, cause: Throwable)
+    extends Exception(s"invalid credentials for $userName") {
+    logger.info(s"invalid credentials for $userName: ${ cause.getMessage }", cause)
+  }
+
+  case class AuthorisationNotAvailableException(cause: Throwable)
+    extends Exception(cause.getMessage, cause) {
+    logger.info(cause.getLocalizedMessage, cause)
+  }
+  case class AuthorisationTypeNotSupportedException(cause: Throwable)
+    extends Exception(cause.getMessage, cause) {
+    logger.info(cause.getLocalizedMessage, cause)
+  }
+
   implicit class TryExtensions2[T](val t: Try[T]) extends AnyVal {
     // TODO candidate for dans-scala-lib
     def unsafeGetOrThrow: T = {

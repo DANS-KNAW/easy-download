@@ -16,14 +16,19 @@
 package nl.knaw.dans.easy.download
 
 import java.net.URI
+import javax.naming.Context
+import javax.naming.ldap.{ InitialLdapContext, LdapContext }
 
-import nl.knaw.dans.easy.download.components.{ AuthInfoComponent, BagStoreComponent, HttpWorkerComponent }
+import nl.knaw.dans.easy.download.components.{ AuthInfoComponent, AuthenticationComponent, BagStoreComponent, HttpWorkerComponent }
+
+import scala.util.Try
 
 /**
  * Initializes and wires together the components of this application.
  */
 trait ApplicationWiring extends HttpWorkerComponent
   with AuthInfoComponent
+  with AuthenticationComponent
   with BagStoreComponent {
 
   /**
@@ -37,5 +42,20 @@ trait ApplicationWiring extends HttpWorkerComponent
   }
   override val authInfo: AuthInfo = new AuthInfo {
     override val baseUri: URI = new URI(configuration.properties.getString("auth-info.url"))
+  }
+
+  override val authentication: Authentication = new Authentication {
+    override val ldapUsersEntry: String = configuration.properties.getString("ldap.users-entry")
+    override val ldapProviderUrl: String = configuration.properties.getString("ldap.provider.url")
+    override val ldapContext: Try[LdapContext] = Try { // TODO fail at service startup
+      val env = new java.util.Hashtable[String, String] {
+        put(Context.SECURITY_AUTHENTICATION, "simple")
+        put(Context.SECURITY_PRINCIPAL, configuration.properties.getString("ldap.securityPrincipal"))
+        put(Context.SECURITY_CREDENTIALS, configuration.properties.getString("ldap.securityCredentials"))
+        put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory")
+        put(Context.PROVIDER_URL, ldapProviderUrl)
+      }
+      new InitialLdapContext(env, null)
+    }
   }
 }

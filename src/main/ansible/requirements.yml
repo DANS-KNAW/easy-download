@@ -18,4 +18,8 @@
   version: v3.1.1
 - src: https://github.com/DANS-KNAW/dans.local-test-vm-base
   version: v2.1.0
+- src: https://github.com/DANS-KNAW/dans.easy-ldap-dir
+  version: v2.0.2
+- src: https://github.com/DANS-KNAW/dans.easy-test-users
+  version: v1.2.0
 

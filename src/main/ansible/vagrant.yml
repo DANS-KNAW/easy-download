@@ -78,6 +78,24 @@
       state: restarted
       enabled: yes
 
+########### ldap
+
+- hosts: "test"
+  vars:
+    easy_ldap_dir_easyadmin_password: "easyadmin"
+    easy_ldap_dir_ldapadmin_password: "ldapadmin"
+    easy_test_users_ldapadmin_password: "ldapadmin"
+  become: yes
+  tasks:
+
+  - name: Install Ldap
+    include_role:
+      name: "dans.easy-ldap-dir"
+
+  - name: Install easy users
+    include_role:
+      name: "dans.easy-test-users"
+
 ########### the intended service
 
 - hosts: "test"
