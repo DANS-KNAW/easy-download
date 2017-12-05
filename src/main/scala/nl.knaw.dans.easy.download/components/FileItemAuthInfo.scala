@@ -31,7 +31,7 @@ case class FileItemAuthInfo(itemId: String,
                            ) {
   private val dateAvailableMilis: Long = new DateTime(dateAvailable).getMillis
 
-  // TODO apply json type hints in AuthInfoComponent to change type of arguments
+  // TODO json type hints in AuthInfoComponent to argument type String by RightsFor
   private val visibleToValue = RightsFor.withName(visibleTo)
   private val accessibleToValue = RightsFor.withName(accessibleTo)
 

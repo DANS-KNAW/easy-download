@@ -29,8 +29,8 @@ class AuthenticationComponentSpec extends TestSupportFixture with MockFactory {
     override val http: HttpWorker = mock[HttpWorker]
     override val authentication: Authentication = new Authentication {
       override val ldapContext: Try[LdapContext] = Success(mockedLdpContext)
-      override val ldapUsersEntry: String = _
-      override val ldapProviderUrl: String = _
+      override val ldapUsersEntry: String = ""
+      override val ldapProviderUrl: String = "http://"
     }
   }
   private val wiring = new TestWiring

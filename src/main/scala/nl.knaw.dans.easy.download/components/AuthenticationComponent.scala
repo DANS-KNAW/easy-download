@@ -16,9 +16,9 @@
 package nl.knaw.dans.easy.download.components
 
 import java.util
-import javax.naming.{ AuthenticationException, Context, NamingEnumeration }
 import javax.naming.directory.{ SearchControls, SearchResult }
 import javax.naming.ldap.{ InitialLdapContext, LdapContext }
+import javax.naming.{ AuthenticationException, Context, NamingEnumeration }
 
 import nl.knaw.dans.easy.download.{ AuthorisationNotAvailableException, AuthorisationTypeNotSupportedException, InvalidUserPasswordException }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
