@@ -32,11 +32,11 @@ trait EasyDownloadApp extends AutoCloseable
 
   def authenticate(authRequest: BasicAuthRequest): Try[Option[User]] = authentication.authenticate(authRequest)
 
-  def copyStream(bagId: UUID, path: Path, outputStreamProducer: () => OutputStream): Try[Unit] = {
+  def copyStream(bagId: UUID, path: Path, user: Option[User], outputStreamProducer: () => OutputStream): Try[Unit] = {
     for {
       authInfo <- authInfo.getOuthInfo(bagId, path)
-      _ <- authInfo.visibleTo(None)
-      _ <- authInfo.accessibleTo(None)
+      _ <- authInfo.visibleTo(user)
+      _ <- authInfo.accessibleTo(user)
       _ <- authInfo.noEmbargo
       _ <- bagStore.copyStream(bagId, path)(outputStreamProducer).recoverWith {
         case HttpStatusException(message, HttpResponse(_, NOT_FOUND_404, _)) =>

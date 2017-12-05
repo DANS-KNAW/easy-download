@@ -31,24 +31,44 @@ case class FileItemAuthInfo(itemId: String,
                            ) {
   private val dateAvailableMilis: Long = new DateTime(dateAvailable).getMillis
 
-  // TODO json type hints in AuthInfoComponent to argument type String by RightsFor
+  // TODO json type hints in AuthInfoComponent to replace argument type String by RightsFor
   private val visibleToValue = RightsFor.withName(visibleTo)
   private val accessibleToValue = RightsFor.withName(accessibleTo)
+
+  private val noGroups: Seq[String] = Seq.empty
 
   def visibleTo(user: Option[User]): Try[Unit] = {
     (user, visibleToValue) match {
       case (None, ANONYMOUS) => Success(())
-      case (None, _) => Failure(new FileNotFoundException(itemId))
-      case (Some(_), _) => Failure(new NotImplementedError())
+      case (None, _) => notFound
+      case (Some(_), KNOWN) => Success(())
+      case (Some(User(`owner`,_,_,_)), _) => Success(())
+      case (Some(User(_,_,true,_)), _) => Success(())
+      case (Some(User(_,_,_,true)), _) => Success(())
+      case (Some(User(_,`noGroups`,_,_)), RESTRICTED_GROUP) => notFound
+      case _ => Failure(new NotImplementedError())
     }
   }
 
   def accessibleTo(user: Option[User]): Try[Unit] = {
     (user, accessibleToValue) match {
       case (None, ANONYMOUS) => Success(())
-      case (None, _) => Failure(NotAccessibleException(s"download not allowed of: $itemId"))
-      case (Some(_), _) => Failure(new NotImplementedError())
+      case (None, _) => notAccessible
+      case (Some(_), KNOWN) => Success(())
+      case (Some(User(`owner`,_,_,_)), _) => Success(())
+      case (Some(User(_,_,true,_)), _) => Success(())
+      case (Some(User(_,_,_,true)), _) => Success(())
+      case (Some(User(_,`noGroups`,_,_)), RESTRICTED_GROUP) => notAccessible
+      case _ => Failure(new NotImplementedError())
     }
+  }
+
+  private def notFound = {
+    Failure(new FileNotFoundException(itemId))
+  }
+
+  private def notAccessible = {
+    Failure(NotAccessibleException(s"download not allowed of: $itemId"))
   }
 
   def noEmbargo: Try[Unit] = {

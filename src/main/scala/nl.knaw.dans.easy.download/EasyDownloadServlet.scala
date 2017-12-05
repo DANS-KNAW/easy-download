@@ -39,8 +39,7 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with Deb
 
   get(s"/ark:/$naan/:uuid/*") {
     (getUUID, getPath, getUser) match {
-      case (Success(uuid), Success(Some(path)), Success(None)) => respond(uuid, app.copyStream(uuid, path, () => response.outputStream))
-      case (Success(uuid), Success(Some(path)), Success(Some(_))) => NotImplemented("Authentication not yet implemented, try anonymous download")
+      case (Success(uuid), Success(Some(path)), Success(user)) => respond(uuid, app.copyStream(uuid, path, user, () => response.outputStream))
       case (Success(_), Success(None), _) => BadRequest("file path is empty")
       case (_, _, Failure(InvalidUserPasswordException(_, _))) => Unauthorized()
       case (_, _, Failure(AuthorisationNotAvailableException(_))) => ServiceUnavailable("Authentication service not available, try anonymous download")
