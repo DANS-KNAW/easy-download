@@ -34,7 +34,7 @@ trait AuthInfoComponent extends DebugEnhancedLogging {
   trait AuthInfo {
     val baseUri: URI
 
-    def getOuthInfo(bagId: UUID, path: Path): Try[FileItemAuthInfo] = {
+    def getFileItem(bagId: UUID, path: Path): Try[FileItemAuthInfo] = {
       for {
         f <- Try(URLEncoder.encode(path.toString, "UTF8"))
         uri = baseUri.resolve(s"$bagId/$f")

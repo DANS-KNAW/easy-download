@@ -52,7 +52,7 @@ class AuthInfoComponentSpec extends TestSupportFixture with MockFactory {
          |  "visibleTo":"ANONYMOUS"
          |}""".stripMargin
     )
-    wiring.authInfo.getOuthInfo(uuid, path) shouldBe a[Success[_]]
+    wiring.authInfo.getFileItem(uuid, path) shouldBe a[Success[_]]
   }
 
   it should "complain about invalid service response" in {
@@ -60,7 +60,7 @@ class AuthInfoComponentSpec extends TestSupportFixture with MockFactory {
     expectAutInfoRequest(path) returning Success(
       s"""{"nonsense":"value"}"""
     )
-    inside(wiring.authInfo.getOuthInfo(uuid, path)) {
+    inside(wiring.authInfo.getFileItem(uuid, path)) {
       case Failure(t) => t should have message
         """parse error [No usable value for itemId
           |Did not find value which can be converted into java.lang.String] for: {"nonsense":"value"}""".stripMargin
@@ -78,7 +78,7 @@ class AuthInfoComponentSpec extends TestSupportFixture with MockFactory {
          |  "visibleTo":"ANONYMOUS"
          |}""".stripMargin
     )
-    inside(wiring.authInfo.getOuthInfo(uuid, path)) {
+    inside(wiring.authInfo.getFileItem(uuid, path)) {
       case Failure(t) =>
         t.getMessage shouldBe
           s"""parse error [unknown error] for: {

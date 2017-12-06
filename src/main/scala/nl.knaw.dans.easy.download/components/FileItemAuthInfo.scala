@@ -21,7 +21,7 @@ import nl.knaw.dans.easy.download.NotAccessibleException
 import nl.knaw.dans.easy.download.components.RightsFor._
 import org.joda.time.DateTime
 
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
 case class FileItemAuthInfo(itemId: String,
                             owner: String,
@@ -37,7 +37,15 @@ case class FileItemAuthInfo(itemId: String,
 
   private val noGroups: Seq[String] = Seq.empty
 
-  def visibleTo(user: Option[User]): Try[Unit] = {
+  def hasDownloadPermissionFor(user: Option[User]): Try[Unit] ={
+    for {
+      _ <- visibleTo(user)
+      _ <- accessibleTo(user)
+      _ <- noEmbargo
+    } yield ()
+  }
+
+  private def visibleTo(user: Option[User]): Try[Unit] = {
     (user, visibleToValue) match {
       case (None, ANONYMOUS) => Success(())
       case (None, _) => notFound
@@ -50,7 +58,7 @@ case class FileItemAuthInfo(itemId: String,
     }
   }
 
-  def accessibleTo(user: Option[User]): Try[Unit] = {
+  private def accessibleTo(user: Option[User]): Try[Unit] = {
     (user, accessibleToValue) match {
       case (None, ANONYMOUS) => Success(())
       case (None, _) => notAccessible

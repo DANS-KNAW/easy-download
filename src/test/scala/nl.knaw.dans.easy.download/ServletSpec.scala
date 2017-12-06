@@ -160,7 +160,6 @@ class ServletSpec extends TestSupportFixture with ServletFixture
   }
 
   it should "report wrong naan" in {
-    expectAutthentication() returning Success(None)
     get(s"ark:/$naan$naan/$uuid/") {
       body shouldBe
         s"""Requesting "GET /ark:/$naan$naan/$uuid/" on servlet "" but only have: <ul><li>GET /</li><li>GET /ark:/$naan/:uuid/*</li></ul>
