@@ -41,46 +41,34 @@ case class FileItemAuthInfo(itemId: String,
     for {
       _ <- visibleTo(user)
       _ <- accessibleTo(user)
-      _ <- noEmbargo
     } yield ()
   }
 
   private def visibleTo(user: Option[User]): Try[Unit] = {
-    (user, visibleToValue) match {
-      case (None, ANONYMOUS) => Success(())
-      case (None, _) => notFound
-      case (Some(_), KNOWN) => Success(())
-      case (Some(User(`owner`,_,_,_)), _) => Success(())
-      case (Some(User(_,_,true,_)), _) => Success(())
-      case (Some(User(_,_,_,true)), _) => Success(())
-      case (Some(User(_,`noGroups`,_,_)), RESTRICTED_GROUP) => notFound
-      case _ => Failure(new NotImplementedError())
-    }
+    if (isOwnerOrArchivist(user)) Success(())
+    else noEmbargo(visibleToValue).flatMap(_ =>
+      if (visibleToValue == ANONYMOUS || (visibleToValue == KNOWN && user.isDefined))
+        Success(())
+      else Failure(new FileNotFoundException(itemId))
+    )
   }
 
   private def accessibleTo(user: Option[User]): Try[Unit] = {
-    (user, accessibleToValue) match {
-      case (None, ANONYMOUS) => Success(())
-      case (None, _) => notAccessible
-      case (Some(_), KNOWN) => Success(())
-      case (Some(User(`owner`,_,_,_)), _) => Success(())
-      case (Some(User(_,_,true,_)), _) => Success(())
-      case (Some(User(_,_,_,true)), _) => Success(())
-      case (Some(User(_,`noGroups`,_,_)), RESTRICTED_GROUP) => notAccessible
-      case _ => Failure(new NotImplementedError())
-    }
+    if (isOwnerOrArchivist(user)) Success(())
+    else noEmbargo(accessibleToValue).flatMap(_ =>
+      if (accessibleToValue == ANONYMOUS) Success(())
+      else if (accessibleToValue == KNOWN && user.isEmpty)
+       Failure(NotAccessibleException(s"Please login to download: $itemId"))
+      else Failure(NotAccessibleException(s"Download not allowed of: $itemId"))// might requires group/permission
+    )
   }
 
-  private def notFound = {
-    Failure(new FileNotFoundException(itemId))
+  private def isOwnerOrArchivist(user: Option[User]): Boolean = {
+    user.exists(user => user.isAdmin || user.isArchivist || user.id == owner)
   }
 
-  private def notAccessible = {
-    Failure(NotAccessibleException(s"download not allowed of: $itemId"))
-  }
-
-  def noEmbargo: Try[Unit] = {
+  def noEmbargo(rightsFor: RightsFor.Value): Try[Unit] = {
     if (dateAvailableMilis <= DateTime.now.getMillis) Success(())
-    else Failure(NotAccessibleException(s"download becomes available on $dateAvailableMilis [$itemId]"))
+    else Failure(NotAccessibleException(s"Download becomes available on $dateAvailableMilis [$itemId]"))
   }
 }
