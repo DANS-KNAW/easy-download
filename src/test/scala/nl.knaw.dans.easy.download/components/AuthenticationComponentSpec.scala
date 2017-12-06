@@ -24,9 +24,7 @@ import scala.util.{ Success, Try }
 
 class AuthenticationComponentSpec extends TestSupportFixture with MockFactory {
   private val mockedLdpContext: LdapContext = mock[LdapContext]
-  private class TestWiring extends AuthenticationComponent
-    with HttpWorkerComponent {
-    override val http: HttpWorker = mock[HttpWorker]
+  private class TestWiring extends AuthenticationComponent{
     override val authentication: Authentication = new Authentication {
       override val ldapContext: Try[LdapContext] = Success(mockedLdpContext)
       override val ldapUsersEntry: String = ""
@@ -35,7 +33,7 @@ class AuthenticationComponentSpec extends TestSupportFixture with MockFactory {
   }
   private val wiring = new TestWiring
 
-  "getOutInfo" should "parse the service response" ignore { // TODO
-
+  "authentication" should "parse the service response" ignore {
+    // TODO needs also mock of 'new InitialLdapContext', first rewrite class under test with a single call
   }
 }
