@@ -39,6 +39,7 @@ class ServletSpec extends TestSupportFixture with ServletFixture
     override val http: HttpWorker = mock[HttpWorker]
     override val authentication: Authentication = mock[Authentication]
     override lazy val configuration: Configuration = new Configuration("", new PropertiesConfiguration() {
+      setDelimiterParsingDisabled(true)
       addProperty("bag-store.url", "http://localhost:20110/")
       addProperty("auth-info.url", "http://localhost:20170/")
       addProperty("ark.name-assigning-authority-number", naan)
