@@ -49,6 +49,24 @@ class FileItemSpec extends TestSupportFixture {
     ) shouldBe Success(())
   }
 
+  it should "reject metadata" in {
+    FileItemAuthInfo("uuid/file.txt", "someone",
+      dateAvailable = "2016-12-15",
+      accessibleTo = KNOWN.toString,
+      visibleTo = KNOWN.toString
+    ).hasDownloadPermissionFor(Some(User("somebody"))
+    ) shouldNot be(Success(())) // TODO verify more details
+  }
+
+  it should "allow metadata for owner" in {
+    FileItemAuthInfo("uuid/file.txt", "someone",
+      dateAvailable = "2016-12-15",
+      accessibleTo = KNOWN.toString,
+      visibleTo = KNOWN.toString
+    ).hasDownloadPermissionFor(Some(User("someone"))
+    ) shouldBe Success(())
+  }
+
   it should "reject if under embargo" in {
     FileItemAuthInfo("uuid/data/file.txt", "someone",
       dateAvailable = "4016-12-15",
