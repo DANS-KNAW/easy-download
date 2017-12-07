@@ -57,8 +57,9 @@ case class FileItemAuthInfo(itemId: String,
     if (isOwnerOrArchivist(user)) Success(())
     else noEmbargo(accessibleToValue).flatMap(_ =>
       if (accessibleToValue == ANONYMOUS) Success(())
-      else if (accessibleToValue == KNOWN && user.isEmpty)
-             Failure(NotAccessibleException(s"Please login to download: $itemId"))
+      else if (accessibleToValue == KNOWN)
+             if (user.isDefined) Success(())
+             else Failure(NotAccessibleException(s"Download not allowed of: $itemId"))
       else Failure(NotAccessibleException(s"Download not allowed of: $itemId")) // might requires group/permission
     )
   }

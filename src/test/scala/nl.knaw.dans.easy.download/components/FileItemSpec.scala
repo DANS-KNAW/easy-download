@@ -15,6 +15,7 @@
  */
 package nl.knaw.dans.easy.download.components
 
+import com.sun.net.httpserver.Authenticator.Failure
 import nl.knaw.dans.easy.download.TestSupportFixture
 import nl.knaw.dans.easy.download.components.RightsFor._
 
@@ -22,16 +23,39 @@ import scala.util.Success
 
 class FileItemSpec extends TestSupportFixture {
 
-  "hasDownloadPermissionFor" should "allow archivist " in {
+  "hasDownloadPermissionFor" should "allow archivist" in {
     FileItemAuthInfo("uuid/file.txt", "someone",
       dateAvailable = "4016-12-15",
       accessibleTo = RESTRICTED_REQUEST.toString,
       visibleTo = RESTRICTED_REQUEST.toString
-    ).hasDownloadPermissionFor(Some(User(
-      "archie",
-      Seq.empty,
-      isAdmin = true,
-      isArchivist = true))
+    ).hasDownloadPermissionFor(Some(User("archie", isArchivist = true))
     ) shouldBe Success(())
+  }
+
+  it should "allow owner" in {
+    FileItemAuthInfo("uuid/file.txt", "someone",
+      dateAvailable = "4016-12-15",
+      accessibleTo = RESTRICTED_REQUEST.toString,
+      visibleTo = RESTRICTED_REQUEST.toString
+    ).hasDownloadPermissionFor(Some(User("someone"))
+    ) shouldBe Success(())
+  }
+
+  it should "allow known" in {
+    FileItemAuthInfo("uuid/file.txt", "someone",
+      dateAvailable = "2016-12-15",
+      accessibleTo = KNOWN.toString,
+      visibleTo = KNOWN.toString
+    ).hasDownloadPermissionFor(Some(User("somebody"))
+    ) shouldBe Success(())
+  }
+
+  it should "reject if under embargo" in {
+    FileItemAuthInfo("uuid/file.txt", "someone",
+      dateAvailable = "4016-12-15",
+      accessibleTo = KNOWN.toString,
+      visibleTo = KNOWN.toString
+    ).hasDownloadPermissionFor(Some(User("somebody"))
+    ) shouldNot be (Success(())) // TODO verify more details
   }
 }
