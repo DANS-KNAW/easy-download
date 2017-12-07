@@ -18,14 +18,12 @@ package nl.knaw.dans.easy
 import java.io.OutputStream
 import java.nio.file.Path
 
-import nl.knaw.dans.easy.download.pathEscaper
+import com.google.common.net.UrlEscapers
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
+import scala.collection.JavaConverters._
 import scala.util.{ Failure, Success, Try }
 import scalaj.http.HttpResponse
-import java.nio.file.Path
-import com.google.common.net.UrlEscapers
-import collection.JavaConverters._
 
 package object download extends DebugEnhancedLogging {
   private val pathEscaper = UrlEscapers.urlPathSegmentEscaper()

@@ -15,13 +15,12 @@
  */
 package nl.knaw.dans.easy.download.components
 
-import java.net.{ URI, URLEncoder }
+import java.net.URI
 import java.nio.file.Path
 import java.util.UUID
 
-import nl.knaw.dans.easy.download.OutputStreamProvider
+import nl.knaw.dans.easy.download.{ OutputStreamProvider, escapePath }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import nl.knaw.dans.easy.download.escapePath
 
 import scala.util.Try
 

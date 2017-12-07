@@ -15,16 +15,16 @@
  */
 package nl.knaw.dans.easy.download.components
 
-import java.net.{ URI, URLEncoder }
+import java.net.URI
 import java.nio.file.Path
 import java.util.UUID
 
+import nl.knaw.dans.easy.download.escapePath
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.json4s.native.JsonMethods._
 import org.json4s.{ DefaultFormats, _ }
 
 import scala.util.{ Failure, Try }
-import nl.knaw.dans.easy.download.escapePath
 
 trait AuthInfoComponent extends DebugEnhancedLogging {
   this: HttpWorkerComponent =>
