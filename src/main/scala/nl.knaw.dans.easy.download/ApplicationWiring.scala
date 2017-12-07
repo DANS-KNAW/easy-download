@@ -57,6 +57,6 @@ trait ApplicationWiring extends HttpWorkerComponent
       }
       new InitialLdapContext(env, null)
     }
-    logger.info (s"ldapContext = $ldapContext")// TODO how to fail at service startup?
+    logger.info(s"ldapContext = $ldapContext") // TODO how to fail at service startup?
   }
 }

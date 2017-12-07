@@ -16,7 +16,6 @@
 package nl.knaw.dans.easy.download
 
 import java.nio.file.{ Files, Path, Paths }
-import java.util.UUID
 
 import org.apache.commons.io.FileUtils
 import org.scalatest.{ BeforeAndAfterEach, FlatSpec, Inside, Matchers }

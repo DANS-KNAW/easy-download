@@ -20,7 +20,7 @@ import javax.naming.directory.{ SearchControls, SearchResult }
 import javax.naming.ldap.{ InitialLdapContext, LdapContext }
 import javax.naming.{ AuthenticationException, Context, NamingEnumeration }
 
-import nl.knaw.dans.easy.download.{ AuthorisationNotAvailableException, AuthorisationTypeNotSupportedException, InvalidUserPasswordException }
+import nl.knaw.dans.easy.download.{ AuthenticationNotAvailableException, AuthenticationTypeNotSupportedException, InvalidUserPasswordException }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.scalatra.auth.strategy.BasicAuthStrategy.BasicAuthRequest
 
@@ -40,7 +40,7 @@ trait AuthenticationComponent extends DebugEnhancedLogging {
 
       (authRequest.providesAuth, authRequest.isBasicAuth) match {
         case (true, true) => getUser(authRequest.username, authRequest.password).map(Some(_))
-        case (true, _) => Failure(AuthorisationTypeNotSupportedException(new Exception("Supporting only basic authentication")))
+        case (true, _) => Failure(AuthenticationTypeNotSupportedException(new Exception("Supporting only basic authentication")))
         case (_, _) => Success(None)
       }
     }
@@ -97,7 +97,7 @@ trait AuthenticationComponent extends DebugEnhancedLogging {
         user <- findUser(userAttributes)
       } yield user).recoverWith {
         case t: InvalidUserPasswordException => Failure(t)
-        case t => Failure(AuthorisationNotAvailableException(t))
+        case t => Failure(AuthenticationNotAvailableException(t))
       }
     }
   }

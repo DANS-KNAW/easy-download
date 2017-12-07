@@ -21,7 +21,7 @@ import nl.knaw.dans.easy.download.NotAccessibleException
 import nl.knaw.dans.easy.download.components.RightsFor._
 import org.joda.time.DateTime
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 case class FileItemAuthInfo(itemId: String,
                             owner: String,
@@ -37,7 +37,7 @@ case class FileItemAuthInfo(itemId: String,
 
   private val noGroups: Seq[String] = Seq.empty
 
-  def hasDownloadPermissionFor(user: Option[User]): Try[Unit] ={
+  def hasDownloadPermissionFor(user: Option[User]): Try[Unit] = {
     for {
       _ <- visibleTo(user)
       _ <- accessibleTo(user)
@@ -58,8 +58,8 @@ case class FileItemAuthInfo(itemId: String,
     else noEmbargo(accessibleToValue).flatMap(_ =>
       if (accessibleToValue == ANONYMOUS) Success(())
       else if (accessibleToValue == KNOWN && user.isEmpty)
-       Failure(NotAccessibleException(s"Please login to download: $itemId"))
-      else Failure(NotAccessibleException(s"Download not allowed of: $itemId"))// might requires group/permission
+             Failure(NotAccessibleException(s"Please login to download: $itemId"))
+      else Failure(NotAccessibleException(s"Download not allowed of: $itemId")) // might requires group/permission
     )
   }
 

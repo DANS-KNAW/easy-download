@@ -16,13 +16,13 @@
 package nl.knaw.dans.easy.download
 
 import java.net.URI
-import java.nio.file.{Path, Paths}
+import java.nio.file.{ Path, Paths }
 import java.util.UUID
 
-import org.scalatra.auth.strategy.BasicAuthStrategy.BasicAuthRequest
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.eclipse.jetty.http.HttpStatus._
 import org.scalamock.scalatest.MockFactory
+import org.scalatra.auth.strategy.BasicAuthStrategy.BasicAuthRequest
 import org.scalatra.test.scalatest.ScalatraSuite
 
 import scala.util.Success

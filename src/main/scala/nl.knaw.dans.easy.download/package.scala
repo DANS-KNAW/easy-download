@@ -38,11 +38,11 @@ package object download extends DebugEnhancedLogging {
     logger.info(s"invalid credentials for $userName: ${ cause.getMessage }", cause)
   }
 
-  case class AuthorisationNotAvailableException(cause: Throwable)
+  case class AuthenticationNotAvailableException(cause: Throwable)
     extends Exception(cause.getMessage, cause) {
     logger.info(cause.getLocalizedMessage, cause)
   }
-  case class AuthorisationTypeNotSupportedException(cause: Throwable)
+  case class AuthenticationTypeNotSupportedException(cause: Throwable)
     extends Exception(cause.getMessage, cause) {
     logger.info(cause.getLocalizedMessage, cause)
   }
