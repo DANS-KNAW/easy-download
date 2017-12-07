@@ -39,7 +39,7 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with Deb
 
   get(s"/ark:/$naan/:uuid/*") {
     (getUUID, getPath, getUser) match {
-      case (Success(uuid), Success(Some(path)), Success(user)) => respond(uuid, app.copyStream(uuid, path, user, () => response.outputStream))
+      case (Success(uuid), Success(Some(path)), Success(user)) => respond(s"$uuid/$path", app.copyStream(uuid, path, user, () => response.outputStream))
       case (Success(_), Success(None), _) => BadRequest("file path is empty")
       case (_, _, Failure(InvalidUserPasswordException(_, _))) => Unauthorized()
       case (_, _, Failure(AuthenticationNotAvailableException(_))) => ServiceUnavailable("Authentication service not available, try anonymous download")
@@ -63,14 +63,14 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with Deb
     multiParams("splat").find(!_.trim.isEmpty).map(Paths.get(_))
   }
 
-  private def respond(uuid: UUID, copyResult: Try[Unit]) = {
+  private def respond(path: String, copyResult: Try[Unit]) = {
     copyResult match {
       case Success(()) => Ok()
       case Failure(HttpStatusException(message, HttpResponse(_, SERVICE_UNAVAILABLE_503, _))) => ServiceUnavailable(message)
       case Failure(HttpStatusException(message, HttpResponse(_, REQUEST_TIMEOUT_408, _))) => RequestTimeout(message)
-      case Failure(HttpStatusException(_, HttpResponse(_, NOT_FOUND_404, _))) => NotFound()
+      case Failure(HttpStatusException(_, HttpResponse(_, NOT_FOUND_404, _))) => NotFound(s"not found: $path")
       case Failure(NotAccessibleException(message)) => Forbidden(message)
-      case Failure(_: FileNotFoundException) => NotFound()
+      case Failure(_: FileNotFoundException) => NotFound(s"not found: $path")
       case Failure(t) =>
         logger.error(t.getMessage, t)
         InternalServerError("not expected exception")

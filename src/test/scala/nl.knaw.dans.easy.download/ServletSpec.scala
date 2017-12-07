@@ -121,7 +121,7 @@ class ServletSpec extends TestSupportFixture with ServletFixture
          |}""".stripMargin
     )
     get(s"ark:/$naan/$uuid/some.file") {
-      body shouldBe s"$uuid/$path"
+      body shouldBe s"not found: $uuid/$path"
       status shouldBe NOT_FOUND_404
     }
   }
