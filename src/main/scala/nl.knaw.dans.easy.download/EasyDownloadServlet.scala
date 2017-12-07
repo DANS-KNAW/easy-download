@@ -47,6 +47,7 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with Deb
       case (Failure(t), _, _) => BadRequest(t.getMessage)
       case (_, Failure(t), _) => BadRequest(t.getMessage)
       case _ =>
+        logger.error(s"not expected request: $params")
         InternalServerError("not expected exception")
     }
   }
@@ -70,7 +71,7 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with Deb
       case Failure(HttpStatusException(message, HttpResponse(_, REQUEST_TIMEOUT_408, _))) => RequestTimeout(message)
       case Failure(HttpStatusException(_, HttpResponse(_, NOT_FOUND_404, _))) => NotFound(s"not found: $path")
       case Failure(NotAccessibleException(message)) => Forbidden(message)
-      case Failure(_: FileNotFoundException) => NotFound(s"not found: $path")
+      case Failure(_: FileNotFoundException) => NotFound(s"not found: $path")// in fact: not visible
       case Failure(t) =>
         logger.error(t.getMessage, t)
         InternalServerError("not expected exception")

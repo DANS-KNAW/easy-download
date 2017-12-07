@@ -51,11 +51,11 @@ class ServletSpec extends TestSupportFixture with ServletFixture
     (app.http.copyHttpStream(_: URI)) expects new URI(s"http://localhost:20110/bags/$uuid/$path") once()
   }
 
-  private def expectAutInfo(path: Path) = {
+  private def expectAuthInfo(path: Path) = {
     (app.http.getHttpAsString(_: URI)) expects new URI(s"http://localhost:20170/$uuid/$path") once()
   }
 
-  private def expectAutthentication() = {
+  private def expectAuthentication() = {
     (app.authentication.authenticate(_: BasicAuthRequest)) expects * once()
   }
 
@@ -67,22 +67,22 @@ class ServletSpec extends TestSupportFixture with ServletFixture
   }
 
   s"get ark:/$naan/:uuid/*" should "return file" in {
-    val path = Paths.get("some.file")
-    expectAutthentication() returning Success(None)
+    val path = Paths.get("data/some.file")
+    expectAuthentication() returning Success(None)
     expectDownloadStream(path) returning (os => {
       os().write(s"content of $uuid/$path ")
       Success(())
     })
-    expectAutInfo(path) returning Success(
+    expectAuthInfo(path) returning Success(
       s"""{
-         |  "itemId":"$uuid/some.file",
+         |  "itemId":"$uuid/$path",
          |  "owner":"someone",
          |  "dateAvailable":"1992-07-30",
          |  "accessibleTo":"ANONYMOUS",
          |  "visibleTo":"ANONYMOUS"
          |}""".stripMargin
     )
-    get(s"ark:/$naan/$uuid/some.file") {
+    get(s"ark:/$naan/$uuid/$path") {
       body shouldBe s"content of $uuid/$path "
       status shouldBe OK_200
     }
@@ -91,7 +91,7 @@ class ServletSpec extends TestSupportFixture with ServletFixture
 
   it should "report invalid authInfo results" in {
     val path = Paths.get("some.file")
-    expectAutInfo(path) returning Success(
+    expectAuthInfo(path) returning Success(
       s"""{
          |  "itemId":"$uuid/some.file",
          |  "owner":"someone",
@@ -100,7 +100,7 @@ class ServletSpec extends TestSupportFixture with ServletFixture
          |  "visibleTo":"ANONYMOUS"
          |}""".stripMargin
     )
-    expectAutthentication() returning Success(None)
+    expectAuthentication() returning Success(None)
     get(s"ark:/$naan/$uuid/some.file") {
       // logged message shown in AuthInfoSpec
       body shouldBe s"not expected exception"
@@ -110,8 +110,8 @@ class ServletSpec extends TestSupportFixture with ServletFixture
 
   it should "report invisible as not found" in {
     val path = Paths.get("some.file")
-    expectAutthentication() returning Success(None)
-    expectAutInfo(path) returning Success(
+    expectAuthentication() returning Success(None)
+    expectAuthInfo(path) returning Success(
       s"""{
          |  "itemId":"$uuid/some.file",
          |  "owner":"someone",
@@ -127,25 +127,25 @@ class ServletSpec extends TestSupportFixture with ServletFixture
   }
 
   it should "forbid download for not authenticated user" in {
-    val path = Paths.get("some.file")
-    expectAutthentication() returning Success(None)
-    expectAutInfo(path) returning Success(
+    val path = Paths.get("data/some.file")
+    expectAuthentication() returning Success(None)
+    expectAuthInfo(path) returning Success(
       s"""{
-         |  "itemId":"$uuid/some.file",
+         |  "itemId":"$uuid/$path",
          |  "owner":"someone",
          |  "dateAvailable":"1992-07-30",
          |  "accessibleTo":"KNOWN",
          |  "visibleTo":"ANONYMOUS"
          |}""".stripMargin
     )
-    get(s"ark:/$naan/$uuid/some.file") {
+    get(s"ark:/$naan/$uuid/$path") {
       body shouldBe s"Please login to download: $uuid/$path"
       status shouldBe FORBIDDEN_403
     }
   }
 
   it should "report invalid uuid" in {
-    expectAutthentication() returning Success(None)
+    expectAuthentication() returning Success(None)
     get(s"ark:/$naan/1-2-3-4-5-6/some.file") {
       body shouldBe "Invalid UUID string: 1-2-3-4-5-6"
       status shouldBe BAD_REQUEST_400
@@ -153,7 +153,7 @@ class ServletSpec extends TestSupportFixture with ServletFixture
   }
 
   it should "report missing path" in {
-    expectAutthentication() returning Success(None)
+    expectAuthentication() returning Success(None)
     get(s"ark:/$naan/$uuid/") {
       body shouldBe "file path is empty"
       status shouldBe BAD_REQUEST_400

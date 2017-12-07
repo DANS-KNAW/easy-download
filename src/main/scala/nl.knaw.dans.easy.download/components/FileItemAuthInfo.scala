@@ -35,8 +35,6 @@ case class FileItemAuthInfo(itemId: String,
   private val visibleToValue = RightsFor.withName(visibleTo)
   private val accessibleToValue = RightsFor.withName(accessibleTo)
 
-  private val noGroups: Seq[String] = Seq.empty
-
   def hasDownloadPermissionFor(user: Option[User]): Try[Unit] = {
     for {
       _ <- visibleTo(user)
@@ -61,17 +59,13 @@ case class FileItemAuthInfo(itemId: String,
       if (accessibleToValue == ANONYMOUS) Success(())
       else if (accessibleToValue == KNOWN)
              if (user.isDefined) Success(())
-             else Failure(NotAccessibleException(s"Download not allowed of: $itemId"))
+             else Failure(NotAccessibleException(s"Please login to download: $itemId"))
       else Failure(NotAccessibleException(s"Download not allowed of: $itemId")) // might requires group/permission
     )
   }
 
   private def isOwnerOrArchivist(user: Option[User]): Boolean = {
     user.exists(user => user.isAdmin || user.isArchivist || user.id == owner)
-  }
-
-  private def isMetadata: Boolean = {
-    !itemId.matches("""[~/]*/data/.*""")
   }
 
   def noEmbargo(rightsFor: RightsFor.Value): Try[Unit] = {
