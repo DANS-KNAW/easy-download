@@ -46,6 +46,8 @@ case class FileItemAuthInfo(itemId: String,
 
   private def visibleTo(user: Option[User]): Try[Unit] = {
     if (isOwnerOrArchivist(user)) Success(())
+    else if (!itemId.matches("""[^/]*/data/.*"""))
+      Failure(new FileNotFoundException(itemId))
     else noEmbargo(visibleToValue).flatMap(_ =>
       if (visibleToValue == ANONYMOUS || (visibleToValue == KNOWN && user.isDefined))
         Success(())
@@ -66,6 +68,10 @@ case class FileItemAuthInfo(itemId: String,
 
   private def isOwnerOrArchivist(user: Option[User]): Boolean = {
     user.exists(user => user.isAdmin || user.isArchivist || user.id == owner)
+  }
+
+  private def isMetadata: Boolean = {
+    !itemId.matches("""[~/]*/data/.*""")
   }
 
   def noEmbargo(rightsFor: RightsFor.Value): Try[Unit] = {

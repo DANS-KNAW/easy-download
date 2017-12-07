@@ -15,7 +15,6 @@
  */
 package nl.knaw.dans.easy.download.components
 
-import com.sun.net.httpserver.Authenticator.Failure
 import nl.knaw.dans.easy.download.TestSupportFixture
 import nl.knaw.dans.easy.download.components.RightsFor._
 
@@ -42,7 +41,7 @@ class FileItemSpec extends TestSupportFixture {
   }
 
   it should "allow known" in {
-    FileItemAuthInfo("uuid/file.txt", "someone",
+    FileItemAuthInfo("uuid/data/file.txt", "someone",
       dateAvailable = "2016-12-15",
       accessibleTo = KNOWN.toString,
       visibleTo = KNOWN.toString
@@ -51,11 +50,11 @@ class FileItemSpec extends TestSupportFixture {
   }
 
   it should "reject if under embargo" in {
-    FileItemAuthInfo("uuid/file.txt", "someone",
+    FileItemAuthInfo("uuid/data/file.txt", "someone",
       dateAvailable = "4016-12-15",
       accessibleTo = KNOWN.toString,
       visibleTo = KNOWN.toString
     ).hasDownloadPermissionFor(Some(User("somebody"))
-    ) shouldNot be (Success(())) // TODO verify more details
+    ) shouldNot be(Success(())) // TODO verify more details
   }
 }
