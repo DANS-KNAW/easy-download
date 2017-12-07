@@ -16,13 +16,19 @@
 package nl.knaw.dans.easy
 
 import java.io.OutputStream
+import java.nio.file.Path
 
+import nl.knaw.dans.easy.download.pathEscaper
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
 import scala.util.{ Failure, Success, Try }
 import scalaj.http.HttpResponse
+import java.nio.file.Path
+import com.google.common.net.UrlEscapers
+import collection.JavaConverters._
 
 package object download extends DebugEnhancedLogging {
+  private val pathEscaper = UrlEscapers.urlPathSegmentEscaper()
 
   type FeedBackMessage = String
   type OutputStreamProvider = () => OutputStream
@@ -45,6 +51,10 @@ package object download extends DebugEnhancedLogging {
   case class AuthenticationTypeNotSupportedException(cause: Throwable)
     extends Exception(cause.getMessage, cause) {
     logger.info(cause.getLocalizedMessage, cause)
+  }
+
+  def escapePath(path: Path): String = {
+    path.asScala.map(_.toString).map(pathEscaper.escape).mkString("/")
   }
 
   implicit class TryExtensions2[T](val t: Try[T]) extends AnyVal {

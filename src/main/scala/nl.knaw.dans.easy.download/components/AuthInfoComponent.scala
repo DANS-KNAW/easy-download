@@ -24,6 +24,7 @@ import org.json4s.native.JsonMethods._
 import org.json4s.{ DefaultFormats, _ }
 
 import scala.util.{ Failure, Try }
+import nl.knaw.dans.easy.download.escapePath
 
 trait AuthInfoComponent extends DebugEnhancedLogging {
   this: HttpWorkerComponent =>
@@ -36,7 +37,7 @@ trait AuthInfoComponent extends DebugEnhancedLogging {
 
     def getFileItem(bagId: UUID, path: Path): Try[FileItemAuthInfo] = {
       for {
-        f <- Try(URLEncoder.encode(path.toString, "UTF8"))
+        f <- Try(escapePath(path))
         uri = baseUri.resolve(s"$bagId/$f")
         jsonString <- http.getHttpAsString(uri)
         authInfo <- Try(parse(jsonString).extract[FileItemAuthInfo]).recoverWith {
