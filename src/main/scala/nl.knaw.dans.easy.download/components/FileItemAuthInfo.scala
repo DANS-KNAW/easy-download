@@ -44,7 +44,7 @@ case class FileItemAuthInfo(itemId: String,
 
   private def visibleTo(user: Option[User]): Try[Unit] = {
     if (isOwnerOrArchivist(user)) Success(())
-    else if (!itemId.matches("""[^/]*/data/.*"""))
+    else if (!itemId.matches("[^/]+/data/.*"))// "[^/]+" matches the uuid of the bag
       Failure(new FileNotFoundException(itemId))
     else noEmbargo(visibleToValue).flatMap(_ =>
       if (visibleToValue == ANONYMOUS || (visibleToValue == KNOWN && user.isDefined))
@@ -60,7 +60,7 @@ case class FileItemAuthInfo(itemId: String,
       else if (accessibleToValue == KNOWN)
              if (user.isDefined) Success(())
              else Failure(NotAccessibleException(s"Please login to download: $itemId"))
-      else Failure(NotAccessibleException(s"Download not allowed of: $itemId")) // might requires group/permission
+      else Failure(NotAccessibleException(s"Download not allowed of: $itemId")) // might require group/permission
     )
   }
 
@@ -70,6 +70,6 @@ case class FileItemAuthInfo(itemId: String,
 
   def noEmbargo(rightsFor: RightsFor.Value): Try[Unit] = {
     if (dateAvailableMilis <= DateTime.now.getMillis) Success(())
-    else Failure(NotAccessibleException(s"Download becomes available on $dateAvailableMilis [$itemId]"))
+    else Failure(NotAccessibleException(s"Download becomes available on $dateAvailable [$itemId]"))
   }
 }
