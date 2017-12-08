@@ -47,11 +47,13 @@ trait AuthenticationComponent extends DebugEnhancedLogging {
     private def getUser(userName: String, password: String): Try[User] = {
       logger.info(s"looking for user [$userName]")
 
+      // all these inner functions make the overall structure somewhat harder to read.
+      // make private functions from them
       def toUser(searchResult: SearchResult) = {
-        def getAttrs(key: String) = {
-          Option(searchResult.getAttributes.get(key)).map(
-            _.getAll.asScala.toList.map(_.toString)
-          ).getOrElse(Seq.empty)
+        def getAttrs(key: String): Seq[String] = {
+          Option(searchResult.getAttributes.get(key))
+            .map(_.getAll.asScala.toSeq.map(_.toString))
+            .getOrElse(Seq.empty)
         }
 
         val roles = getAttrs("easyRoles")
@@ -62,6 +64,8 @@ trait AuthenticationComponent extends DebugEnhancedLogging {
         )
       }
 
+      // I don't really understand what's going on here. Maybe add one or two lines of explanation?
+      // why do you return the `LdapContext` here, but then discard it in it's single use?
       def validPassword: Try[InitialLdapContext] = Try {
         val env = new util.Hashtable[String, String]() {
           put(Context.PROVIDER_URL, ldapProviderUrl)
@@ -88,12 +92,14 @@ trait AuthenticationComponent extends DebugEnhancedLogging {
       val searchControls = new SearchControls() {
         setSearchScope(SearchControls.SUBTREE_SCOPE)
       }
-      (for {
+      val user = for {
         context <- ldapContext
         _ <- validPassword
-        userAttributes <- Try(context.search(ldapUsersEntry, searchFilter, searchControls))
+        userAttributes = context.search(ldapUsersEntry, searchFilter, searchControls)
         user <- findUser(userAttributes)
-      } yield user).recoverWith {
+      } yield user
+
+      user.recoverWith {
         case t: InvalidUserPasswordException => Failure(t)
         case t => Failure(AuthenticationNotAvailableException(t))
       }
