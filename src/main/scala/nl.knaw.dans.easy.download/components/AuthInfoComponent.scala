@@ -21,6 +21,7 @@ import java.util.UUID
 
 import nl.knaw.dans.easy.download.escapePath
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import org.joda.time.DateTime
 import org.json4s.native.JsonMethods._
 import org.json4s.{ DefaultFormats, _ }
 
@@ -30,20 +31,35 @@ trait AuthInfoComponent extends DebugEnhancedLogging {
   this: HttpWorkerComponent =>
 
   val authInfo: AuthInfo
+
   private implicit val jsonFormats: Formats = DefaultFormats
 
   trait AuthInfo {
     val baseUri: URI
+
 
     def getFileItem(bagId: UUID, path: Path): Try[FileItemAuthInfo] = {
       for {
         f <- Try(escapePath(path))
         uri = baseUri.resolve(s"$bagId/$f")
         jsonString <- http.getHttpAsString(uri)
-        authInfo <- Try(parse(jsonString).extract[FileItemAuthInfo]).recoverWith {
+        authInfo <- Try(parse(jsonString).extract[IntermediateFileItem]).recoverWith {
           case t => Failure(new Exception(s"parse error [${ t.getMessage }] for: $jsonString", t))
         }
-      } yield authInfo
+      } yield FileItemAuthInfo(
+        authInfo.itemId,
+        authInfo.owner,
+        new DateTime(authInfo.dateAvailable),
+        RightsFor.withName(authInfo.accessibleTo),
+        RightsFor.withName(authInfo.visibleTo)
+      )
     }
   }
 }
+case class IntermediateFileItem(// TODO replace class with typeHints for DefaultFormats?
+                                 itemId: String,
+                                 owner: String,
+                                 dateAvailable: String,
+                                 accessibleTo: String,
+                                 visibleTo: String
+                               )

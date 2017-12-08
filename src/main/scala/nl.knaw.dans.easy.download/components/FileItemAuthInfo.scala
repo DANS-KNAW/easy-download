@@ -20,21 +20,16 @@ import java.io.FileNotFoundException
 import nl.knaw.dans.easy.download.NotAccessibleException
 import nl.knaw.dans.easy.download.components.RightsFor._
 import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 
 import scala.util.{ Failure, Success, Try }
 
 case class FileItemAuthInfo(itemId: String,
                             owner: String,
-                            dateAvailable: String,
-                            accessibleTo: String,
-                            visibleTo: String
+                            dateAvailable: DateTime,
+                            accessibleTo: RightsFor.Value,
+                            visibleTo: RightsFor.Value
                            ) {
-  private val dateAvailableMilis: Long = new DateTime(dateAvailable).getMillis
-
-  // TODO json type hints in AuthInfoComponent to replace argument type String by RightsFor
-  private val visibleToValue = RightsFor.withName(visibleTo)
-  private val accessibleToValue = RightsFor.withName(accessibleTo)
-
   def hasDownloadPermissionFor(user: Option[User]): Try[Unit] = {
     for {
       _ <- visibleTo(user)
@@ -44,10 +39,10 @@ case class FileItemAuthInfo(itemId: String,
 
   private def visibleTo(user: Option[User]): Try[Unit] = {
     if (isOwnerOrArchivist(user)) Success(())
-    else if (!itemId.matches("[^/]+/data/.*"))// "[^/]+" matches the uuid of the bag
-      Failure(new FileNotFoundException(itemId))
-    else noEmbargo(visibleToValue).flatMap(_ =>
-      if (visibleToValue == ANONYMOUS || (visibleToValue == KNOWN && user.isDefined))
+    else if (!itemId.matches("[^/]+/data/.*")) // "[^/]+" matches the uuid of the bag
+           Failure(new FileNotFoundException(itemId))
+    else noEmbargo(visibleTo).flatMap(_ =>
+      if (visibleTo == ANONYMOUS || (visibleTo == KNOWN && user.isDefined))
         Success(())
       else Failure(new FileNotFoundException(itemId))
     )
@@ -55,9 +50,9 @@ case class FileItemAuthInfo(itemId: String,
 
   private def accessibleTo(user: Option[User]): Try[Unit] = {
     if (isOwnerOrArchivist(user)) Success(())
-    else noEmbargo(accessibleToValue).flatMap(_ =>
-      if (accessibleToValue == ANONYMOUS) Success(())
-      else if (accessibleToValue == KNOWN)
+    else noEmbargo(accessibleTo).flatMap(_ =>
+      if (accessibleTo == ANONYMOUS) Success(())
+      else if (accessibleTo == KNOWN)
              if (user.isDefined) Success(())
              else Failure(NotAccessibleException(s"Please login to download: $itemId"))
       else Failure(NotAccessibleException(s"Download not allowed of: $itemId")) // might require group/permission
@@ -69,7 +64,10 @@ case class FileItemAuthInfo(itemId: String,
   }
 
   def noEmbargo(rightsFor: RightsFor.Value): Try[Unit] = {
-    if (dateAvailableMilis <= DateTime.now.getMillis) Success(())
-    else Failure(NotAccessibleException(s"Download becomes available on $dateAvailable [$itemId]"))
+    if (dateAvailable.isBeforeNow) Success(())
+    else {
+      val date = DateTimeFormat.forPattern("yyyy-MM-dd").print(dateAvailable)
+      Failure(NotAccessibleException(s"Download becomes available on $date [$itemId]"))
+    }
   }
 }
