@@ -32,10 +32,13 @@ trait BagStoreComponent extends DebugEnhancedLogging {
   trait BagStore {
     val baseUri: URI
 
+    // name isn't really fitting for the context this function is in; shouldn't it be something like `downloadFile`
+    // question: can this `path` also be a directory/folder? e.g. can you download a whole folder at once?
+    // question: can I use `path` to get places I'm not supposed to be at? like `bag/../../../other-bag-store/`
     def copyStream(bagId: UUID, path: Path): OutputStreamProvider => Try[Unit] = { outputStreamProducer =>
       for {
         f <- Try(escapePath(path))
-        uri <- Try(baseUri.resolve(s"bags/$bagId/$f"))
+        uri = baseUri.resolve(s"bags/$bagId/$f")
         _ <- http.copyHttpStream(uri)(outputStreamProducer)
       } yield ()
     }

@@ -37,7 +37,6 @@ trait AuthenticationComponent extends DebugEnhancedLogging {
     val ldapProviderUrl: String
 
     def authenticate(authRequest: BasicAuthRequest): Try[Option[User]] = {
-
       (authRequest.providesAuth, authRequest.isBasicAuth) match {
         case (true, true) => getUser(authRequest.username, authRequest.password).map(Some(_))
         case (true, _) => Failure(AuthenticationTypeNotSupportedException(new Exception("Supporting only basic authentication")))
@@ -46,7 +45,6 @@ trait AuthenticationComponent extends DebugEnhancedLogging {
     }
 
     private def getUser(userName: String, password: String): Try[User] = {
-
       logger.info(s"looking for user [$userName]")
 
       def toUser(searchResult: SearchResult) = {

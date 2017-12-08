@@ -29,6 +29,8 @@ trait HttpWorkerComponent {
   val http: HttpWorker
 
   trait HttpWorker {
+
+    // if the response code is 201, you will get a Success(()), but nothing will be written to the outputstream
     def copyHttpStream(uri: URI): OutputStreamProvider => Try[Unit] = { outputStreamProducer =>
       val response = Http(uri.toString).method("GET").exec {
         case (OK_200, _, is) => IOUtils.copyLarge(is, outputStreamProducer())
