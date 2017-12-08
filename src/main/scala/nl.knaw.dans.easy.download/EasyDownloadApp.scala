@@ -37,12 +37,13 @@ trait EasyDownloadApp extends AutoCloseable
       fileItem <- authInfo.getFileItem(bagId, path)
       _ <- user.hasDownloadPermissionFor(fileItem)
       _ <- bagStore.copyStream(bagId, path)(outputStreamProducer).recoverWith {
-        case HttpStatusException(message, HttpResponse(_, NOT_FOUND_404, _)) =>
+        case HttpStatusException(_, HttpResponse(_, NOT_FOUND_404, _)) =>
           Failure(new Exception(s"invalid bag, file downloadable but not found: $path"))
       }
     } yield ()
   }
 
+  // if you don't need these `init` and `close`, remove them!
   def init(): Try[Unit] = {
     // Do any initialization of the application here. Typical examples are opening
     // databases or connecting to other services.
