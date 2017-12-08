@@ -38,42 +38,31 @@ case class FileItem(itemId: String,
                     visibleTo: RightsFor.Value
                    ) {
   def availableFor(user: Option[User]): Try[Unit] = {
-    for {
-      _ <- visibleTo(user)
-      _ <- accessibleTo(user)
-    } yield ()
-  }
-
-  private def visibleTo(user: Option[User]): Try[Unit] = {
     if (hasPower(user)) Success(())
-    else noEmbargo().flatMap(_ =>
-      if (visibleTo == ANONYMOUS || (visibleTo == KNOWN && user.isDefined))
-        Success(())
-      else Failure(new FileNotFoundException(itemId))
-    )
-  }
-
-  private def accessibleTo(user: Option[User]): Try[Unit] = {
-    if (hasPower(user)) Success(())
-    else noEmbargo().flatMap(_ =>
-      if (accessibleTo == ANONYMOUS) Success(())
-      else if (accessibleTo == KNOWN)
-             if (user.isDefined) Success(())
-             else Failure(NotAccessibleException(s"Please login to download: $itemId"))
-      else Failure(NotAccessibleException(s"Download not allowed of: $itemId")) // might require group/permission
-    )
+    else if (!visibleTo(user)) Failure(new FileNotFoundException(itemId))
+    else if (isUnderEmbargo) underEmbargo
+    else if (accessibleTo == ANONYMOUS) Success(())
+    else if (accessibleTo == KNOWN)
+           if (user.isDefined) Success(())
+           else Failure(NotAccessibleException(s"Please login to download: $itemId"))
+    else Failure(NotAccessibleException(s"Download not allowed of: $itemId")) // might require group/permission
   }
 
   private def hasPower(user: Option[User]): Boolean = {
     user.exists(user => user.isAdmin || user.isArchivist || user.id == owner)
   }
 
-  def noEmbargo(): Try[Unit] = {
-    if (dateAvailable.isBeforeNow) Success(())
-    else {
-      val date = DateTimeFormat.forPattern("yyyy-MM-dd").print(dateAvailable)
-      Failure(NotAccessibleException(s"Download becomes available on $date [$itemId]"))
-    }
+  private def visibleTo(user: Option[User]): Boolean = {
+    visibleTo == ANONYMOUS || (visibleTo == KNOWN && user.isDefined)
+  }
+
+  private def isUnderEmbargo = {
+    dateAvailable.isAfterNow
+  }
+
+  private def underEmbargo = {
+    val date = DateTimeFormat.forPattern("yyyy-MM-dd").print(dateAvailable)
+    Failure(NotAccessibleException(s"Download becomes available on $date [$itemId]"))
   }
 }
 

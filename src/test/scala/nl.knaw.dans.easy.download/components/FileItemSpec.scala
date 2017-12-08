@@ -71,7 +71,7 @@ class FileItemSpec extends TestSupportFixture {
     FileItem(itemId = "uuid/data/file.txt", owner = "someone",
       dateAvailable = new DateTime("4016-12-15"),
       accessibleTo = KNOWN,
-      visibleTo = KNOWN
+      visibleTo = ANONYMOUS
     ).availableFor(Some(User("somebody"))) should matchPattern {
       case Failure(NotAccessibleException("Download becomes available on 4016-12-15 [uuid/data/file.txt]")) =>
     }
@@ -101,7 +101,7 @@ class FileItemSpec extends TestSupportFixture {
     FileItem(itemId = "uuid/data/file.txt", owner = "someone",
       dateAvailable = new DateTime("4016-12-15"),
       accessibleTo = RESTRICTED_GROUP,
-      visibleTo = RESTRICTED_GROUP
+      visibleTo = ANONYMOUS
     ).availableFor(Some(User("somebody"))) should matchPattern {
       case Failure(NotAccessibleException("Download becomes available on 4016-12-15 [uuid/data/file.txt]")) =>
     }
