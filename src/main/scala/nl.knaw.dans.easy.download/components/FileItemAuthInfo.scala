@@ -32,16 +32,17 @@ case class FileItemAuthInfo(itemId: String,
   private val dateAvailableMillis: Long = new DateTime(dateAvailable).getMillis
 
   // TODO json type hints in AuthInfoComponent to replace argument type String by RightsFor
-  private val visibleToValue = RightsFor.withName(visibleTo)
-  private val accessibleToValue = RightsFor.withName(accessibleTo)
+  val visibleToValue = RightsFor.withName(visibleTo)
+  val accessibleToValue = RightsFor.withName(accessibleTo)
 
   def hasDownloadPermissionFor(user: AbstractUser): Try[Unit] = {
     for {
-      _ <- visibleTo(user)
-      _ <- accessibleTo(user)
+      _ <- user.canView(this)
+      _ <- user.canAccess(this)
     } yield ()
   }
 
+  @deprecated
   private def visibleTo(user: AbstractUser): Try[Unit] = {
     user match {
       case ArchivistUser(_, _) | AdminUser(_, _) => Success(())
@@ -53,15 +54,16 @@ case class FileItemAuthInfo(itemId: String,
     }
   }
 
-  private def isDataFile: Boolean = itemId.matches("[^/]+/data/.*") // "[^/]+" matches the uuid of the bag
-  private def hasEmbargo: Boolean = dateAvailableMillis > DateTime.now.getMillis
-  private def isVisible(user: AbstractUser): Boolean = {
+  def isDataFile: Boolean = itemId.matches("[^/]+/data/.*") // "[^/]+" matches the uuid of the bag
+  def hasEmbargo: Boolean = dateAvailableMillis > DateTime.now.getMillis
+  def isVisible(user: AbstractUser): Boolean = {
     user match {
       case UnauthenticatedUser => visibleToValue == ANONYMOUS
       case _ => visibleToValue == ANONYMOUS || visibleToValue == KNOWN
     }
   }
 
+  @deprecated
   private def accessibleTo(user: AbstractUser): Try[Unit] = {
     user match {
       case ArchivistUser(_, _) | AdminUser(_, _) => Success(())
