@@ -26,7 +26,7 @@ class AuthenticationComponentSpec extends TestSupportFixture with MockFactory {
   private val mockedLdpContext: LdapContext = mock[LdapContext]
   private class TestWiring extends AuthenticationComponent {
     override val authentication: Authentication = new Authentication {
-      override val ldapContext: Try[LdapContext] = Success(mockedLdpContext)
+      override val adminLdapContext: Try[LdapContext] = Success(mockedLdpContext)
       override val ldapUsersEntry: String = ""
       override val ldapProviderUrl: String = "http://"
     }

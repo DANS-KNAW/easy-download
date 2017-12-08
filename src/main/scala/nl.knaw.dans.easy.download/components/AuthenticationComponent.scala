@@ -32,7 +32,7 @@ trait AuthenticationComponent extends DebugEnhancedLogging {
   val authentication: Authentication
 
   trait Authentication {
-    val ldapContext: Try[LdapContext]
+    val adminLdapContext: Try[LdapContext]
     val ldapUsersEntry: String
     val ldapProviderUrl: String
 
@@ -46,14 +46,15 @@ trait AuthenticationComponent extends DebugEnhancedLogging {
     }
 
     private def getUser(userName: String, password: String): Try[User] = {
+      // inner functions reuse the arguments
 
       logger.info(s"looking for user [$userName]")
 
       def toUser(searchResult: SearchResult) = {
-        def getAttrs(key: String) = {
-          Option(searchResult.getAttributes.get(key)).map(
-            _.getAll.asScala.toList.map(_.toString)
-          ).getOrElse(Seq.empty)
+        def getAttrs(key: String): Seq[String] = {
+          Option(searchResult.getAttributes.get(key))
+            .map(_.getAll.asScala.toSeq.map(_.toString))
+            .getOrElse(Seq.empty)
         }
 
         val roles = getAttrs("easyRoles")
@@ -64,7 +65,8 @@ trait AuthenticationComponent extends DebugEnhancedLogging {
         )
       }
 
-      def validPassword: Try[InitialLdapContext] = Try {
+      def validPassword: Try[Unit] = Try {
+        // fetching user specific context verifies the password
         val env = new util.Hashtable[String, String]() {
           put(Context.PROVIDER_URL, ldapProviderUrl)
           put(Context.SECURITY_AUTHENTICATION, "simple")
@@ -73,7 +75,8 @@ trait AuthenticationComponent extends DebugEnhancedLogging {
           put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory")
         }
         new InitialLdapContext(env, null)
-        // TODO can we get attributes from this context?
+        // TODO can we get user attributes from this context and drop the adminLdapContext?
+        ()
       }.recoverWith {
         case t: AuthenticationException => Failure(InvalidUserPasswordException(userName, new Exception("invalid password", t)))
         case t => Failure(t)
@@ -90,12 +93,14 @@ trait AuthenticationComponent extends DebugEnhancedLogging {
       val searchControls = new SearchControls() {
         setSearchScope(SearchControls.SUBTREE_SCOPE)
       }
-      (for {
-        context <- ldapContext
+      val user = for {
+        context <- adminLdapContext
         _ <- validPassword
-        userAttributes <- Try(context.search(ldapUsersEntry, searchFilter, searchControls))
+        userAttributes = context.search(ldapUsersEntry, searchFilter, searchControls)
         user <- findUser(userAttributes)
-      } yield user).recoverWith {
+      } yield user
+
+      user.recoverWith {
         case t: InvalidUserPasswordException => Failure(t)
         case t => Failure(AuthenticationNotAvailableException(t))
       }

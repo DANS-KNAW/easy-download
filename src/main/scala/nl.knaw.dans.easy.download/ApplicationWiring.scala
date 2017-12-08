@@ -47,7 +47,7 @@ trait ApplicationWiring extends HttpWorkerComponent
   override val authentication: Authentication = new Authentication {
     override val ldapUsersEntry: String = configuration.properties.getString("ldap.users-entry")
     override val ldapProviderUrl: String = configuration.properties.getString("ldap.provider.url")
-    override val ldapContext: Try[LdapContext] = Try {
+    override val adminLdapContext: Try[LdapContext] = Try {
       val env = new java.util.Hashtable[String, String] {
         put(Context.SECURITY_AUTHENTICATION, "simple")
         put(Context.SECURITY_PRINCIPAL, configuration.properties.getString("ldap.securityPrincipal"))
@@ -57,6 +57,6 @@ trait ApplicationWiring extends HttpWorkerComponent
       }
       new InitialLdapContext(env, null)
     }
-    logger.info(s"ldapContext = $ldapContext") // TODO how to fail at service startup?
+    logger.info(s"ldapContext = $adminLdapContext") // TODO how to fail at service startup?
   }
 }
