@@ -19,7 +19,7 @@ import java.net.URI
 import java.nio.file.{ Path, Paths }
 import java.util.UUID
 
-import nl.knaw.dans.easy.download.components.UnauthenticatedUser
+import nl.knaw.dans.easy.download.components.AnonymousUser
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.eclipse.jetty.http.HttpStatus._
 import org.scalamock.scalatest.MockFactory
@@ -69,7 +69,7 @@ class ServletSpec extends TestSupportFixture with ServletFixture
 
   s"get ark:/$naan/:uuid/*" should "return file" in {
     val path = Paths.get("data/some.file")
-    expectAuthentication() returning Success(UnauthenticatedUser)
+    expectAuthentication() returning Success(AnonymousUser)
     expectDownloadStream(path) returning (os => {
       os().write(s"content of $uuid/$path ")
       Success(())
@@ -101,7 +101,7 @@ class ServletSpec extends TestSupportFixture with ServletFixture
          |  "visibleTo":"ANONYMOUS"
          |}""".stripMargin
     )
-    expectAuthentication() returning Success(UnauthenticatedUser)
+    expectAuthentication() returning Success(AnonymousUser)
     get(s"ark:/$naan/$uuid/some.file") {
       // logged message shown in AuthInfoSpec
       body shouldBe s"not expected exception"
@@ -111,7 +111,7 @@ class ServletSpec extends TestSupportFixture with ServletFixture
 
   it should "report invisible as not found" in {
     val path = Paths.get("some.file")
-    expectAuthentication() returning Success(UnauthenticatedUser)
+    expectAuthentication() returning Success(AnonymousUser)
     expectAuthInfo(path) returning Success(
       s"""{
          |  "itemId":"$uuid/some.file",
@@ -129,7 +129,7 @@ class ServletSpec extends TestSupportFixture with ServletFixture
 
   it should "forbid download for not authenticated user" in {
     val path = Paths.get("data/some.file")
-    expectAuthentication() returning Success(UnauthenticatedUser)
+    expectAuthentication() returning Success(AnonymousUser)
     expectAuthInfo(path) returning Success(
       s"""{
          |  "itemId":"$uuid/$path",
@@ -146,7 +146,7 @@ class ServletSpec extends TestSupportFixture with ServletFixture
   }
 
   it should "report invalid uuid" in {
-    expectAuthentication() returning Success(UnauthenticatedUser)
+    expectAuthentication() returning Success(AnonymousUser)
     get(s"ark:/$naan/1-2-3-4-5-6/some.file") {
       body shouldBe "Invalid UUID string: 1-2-3-4-5-6"
       status shouldBe BAD_REQUEST_400
@@ -154,7 +154,7 @@ class ServletSpec extends TestSupportFixture with ServletFixture
   }
 
   it should "report missing path" in {
-    expectAuthentication() returning Success(UnauthenticatedUser)
+    expectAuthentication() returning Success(AnonymousUser)
     get(s"ark:/$naan/$uuid/") {
       body shouldBe "file path is empty"
       status shouldBe BAD_REQUEST_400

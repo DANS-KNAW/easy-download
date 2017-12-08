@@ -38,8 +38,8 @@ package object download extends DebugEnhancedLogging {
     extends Exception(message)
 
   // TODO not sure about these log statements in these constructors.
-  // also I'm not sure if the log level is correct (info)
-  // if that one is correct, then I wouldn't add the whole stacktrace of the cause
+  // TODO also I'm not sure if the log level is correct (info)
+  // TODO if that one is correct, then I wouldn't add the whole stacktrace of the cause
   case class InvalidUserPasswordException(userName: String, cause: Throwable)
     extends Exception(s"invalid credentials for $userName") {
     logger.info(s"invalid credentials for $userName: ${ cause.getMessage }", cause)

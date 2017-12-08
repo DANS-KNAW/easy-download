@@ -45,7 +45,7 @@ class FileItemSpec extends TestSupportFixture {
       accessibleTo = RESTRICTED_REQUEST.toString,
       visibleTo = RESTRICTED_REQUEST.toString
     )
-    val user = AuthenticatedUser("someone")
+    val user = KnownUser("someone")
     user.hasDownloadPermissionFor(fileItem) shouldBe Success(())
   }
 
@@ -55,7 +55,7 @@ class FileItemSpec extends TestSupportFixture {
       accessibleTo = KNOWN.toString,
       visibleTo = KNOWN.toString
     )
-    val user = AuthenticatedUser("somebody")
+    val user = KnownUser("somebody")
     user.hasDownloadPermissionFor(fileItem) shouldBe Success(())
   }
 
@@ -65,7 +65,7 @@ class FileItemSpec extends TestSupportFixture {
       accessibleTo = KNOWN.toString,
       visibleTo = KNOWN.toString
     )
-    val user = AuthenticatedUser("somebody")
+    val user = KnownUser("somebody")
     user.hasDownloadPermissionFor(fileItem) should matchPattern {
       case Failure(t: FileNotFoundException) if t.getMessage == "uuid/file.txt" =>
     }
@@ -77,7 +77,7 @@ class FileItemSpec extends TestSupportFixture {
       accessibleTo = KNOWN.toString,
       visibleTo = KNOWN.toString
     )
-    val user = AuthenticatedUser("someone")
+    val user = KnownUser("someone")
     user.hasDownloadPermissionFor(fileItem) shouldBe Success(())
   }
 
@@ -87,7 +87,7 @@ class FileItemSpec extends TestSupportFixture {
       accessibleTo = KNOWN.toString,
       visibleTo = KNOWN.toString
     )
-    val user = AuthenticatedUser("somebody")
+    val user = KnownUser("somebody")
     user.hasDownloadPermissionFor(fileItem) should matchPattern {
       case Failure(t: FileNotFoundException) if t.getMessage == "uuid/file.txt" =>
     }
@@ -99,7 +99,7 @@ class FileItemSpec extends TestSupportFixture {
       accessibleTo = KNOWN.toString,
       visibleTo = ANONYMOUS.toString
     )
-    val user = UnauthenticatedUser
+    val user = AnonymousUser
     user.hasDownloadPermissionFor(fileItem) should matchPattern {
       case Failure(NotAccessibleException("Please login to download: uuid/data/file.txt")) =>
     }
@@ -111,7 +111,7 @@ class FileItemSpec extends TestSupportFixture {
       accessibleTo = KNOWN.toString,
       visibleTo = KNOWN.toString
     )
-    val user = AuthenticatedUser("somebody")
+    val user = KnownUser("somebody")
     user.hasDownloadPermissionFor(fileItem) should matchPattern {
       case Failure(NotAccessibleException("Download becomes available on 4016-12-15 [uuid/data/file.txt]")) =>
     }
@@ -123,7 +123,7 @@ class FileItemSpec extends TestSupportFixture {
       accessibleTo = RESTRICTED_GROUP.toString,
       visibleTo = ANONYMOUS.toString
     )
-    val user = AuthenticatedUser("somebody")
+    val user = KnownUser("somebody")
     user.hasDownloadPermissionFor(fileItem) should matchPattern {
       case Failure(NotAccessibleException("Download not allowed of: uuid/data/file.txt")) =>
     }
@@ -135,7 +135,7 @@ class FileItemSpec extends TestSupportFixture {
       accessibleTo = RESTRICTED_GROUP.toString,
       visibleTo = RESTRICTED_GROUP.toString
     )
-    val user = AuthenticatedUser("somebody")
+    val user = KnownUser("somebody")
     user.hasDownloadPermissionFor(fileItem) should matchPattern {
       case Failure(t: FileNotFoundException) if t.getMessage == "uuid/data/file.txt" =>
     }
@@ -147,7 +147,7 @@ class FileItemSpec extends TestSupportFixture {
       accessibleTo = RESTRICTED_GROUP.toString,
       visibleTo = RESTRICTED_GROUP.toString
     )
-    val user = AuthenticatedUser("somebody")
+    val user = KnownUser("somebody")
     user.hasDownloadPermissionFor(fileItem) should matchPattern {
       case Failure(NotAccessibleException("Download becomes available on 4016-12-15 [uuid/data/file.txt]")) =>
     }

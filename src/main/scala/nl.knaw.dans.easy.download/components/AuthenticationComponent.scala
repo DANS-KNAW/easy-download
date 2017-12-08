@@ -40,7 +40,7 @@ trait AuthenticationComponent extends DebugEnhancedLogging {
       (authRequest.providesAuth, authRequest.isBasicAuth) match {
         case (true, true) => getUser(authRequest.username, authRequest.password)
         case (true, _) => Failure(AuthenticationTypeNotSupportedException(new Exception("Supporting only basic authentication")))
-        case (_, _) => Success(UnauthenticatedUser)
+        case (_, _) => Success(AnonymousUser)
       }
     }
 
@@ -64,7 +64,7 @@ trait AuthenticationComponent extends DebugEnhancedLogging {
         else if (roles contains "ARCHIVIST")
           ArchivistUser(userName, groups)
         else
-          AuthenticatedUser(userName, groups)
+          KnownUser(userName, groups)
       }
 
       // TODO I don't really understand what's going on here. Maybe add one or two lines of explanation?

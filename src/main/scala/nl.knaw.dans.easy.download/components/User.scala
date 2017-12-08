@@ -28,6 +28,7 @@ sealed abstract class User(id: String, groups: Seq[String]) {
 
   def canAccess(fileItem: FileItemAuthInfo): Try[Unit]
 
+  // remove this one, is split into the two subcalls.
   def hasDownloadPermissionFor(fileItem: FileItemAuthInfo): Try[Unit] = {
     for {
       _ <- canView(fileItem)
@@ -36,7 +37,7 @@ sealed abstract class User(id: String, groups: Seq[String]) {
   }
 }
 
-case object UnauthenticatedUser extends User("", Seq.empty) {
+case object AnonymousUser extends User("", Seq.empty) {
   def canView(fileItem: FileItemAuthInfo): Try[Unit] = {
     if (!fileItem.isDataFile)
       Failure(new FileNotFoundException(fileItem.itemId))
@@ -60,7 +61,7 @@ case object UnauthenticatedUser extends User("", Seq.empty) {
   }
 }
 
-case class AuthenticatedUser(id: String, groups: Seq[String] = Seq.empty) extends User(id, groups) {
+case class KnownUser(id: String, groups: Seq[String] = Seq.empty) extends User(id, groups) {
   def canView(fileItem: FileItemAuthInfo): Try[Unit] = {
     if (id == fileItem.owner)
       Success(())
