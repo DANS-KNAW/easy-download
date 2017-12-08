@@ -29,6 +29,7 @@ package nl.knaw.dans.easy.download.components
  * case class ArchivistUser extends AuthenticatedUser
  * case class AdminUser extends AuthenticatedUser
  */
+@deprecated
 case class User(id: String,
                 groups: Seq[String] = Seq.empty,
                 isArchivist: Boolean = false,
@@ -38,3 +39,10 @@ case class User(id: String,
     s"User: id=$id groups=$groups isArchivist=$isArchivist isAdmin=$isAdmin"
   }
 }
+
+// TODO not sure what the `groups` is used for; for now I just kept it in and gave them all an empty Seq
+sealed abstract class AbstractUser(id: String, groups: Seq[String])
+case object UnauthenticatedUser extends AbstractUser("", Seq.empty)
+case class AuthenticatedUser(id: String, groups: Seq[String] = Seq.empty) extends AbstractUser(id, groups)
+case class ArchivistUser(id: String, groups: Seq[String] = Seq.empty) extends AbstractUser(id, groups)
+case class AdminUser(id: String, groups: Seq[String] = Seq.empty) extends AbstractUser(id, groups)

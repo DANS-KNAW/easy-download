@@ -36,20 +36,20 @@ trait AuthenticationComponent extends DebugEnhancedLogging {
     val ldapUsersEntry: String
     val ldapProviderUrl: String
 
-    def authenticate(authRequest: BasicAuthRequest): Try[Option[User]] = {
+    def authenticate(authRequest: BasicAuthRequest): Try[AbstractUser] = {
       (authRequest.providesAuth, authRequest.isBasicAuth) match {
-        case (true, true) => getUser(authRequest.username, authRequest.password).map(Some(_))
+        case (true, true) => getUser(authRequest.username, authRequest.password)
         case (true, _) => Failure(AuthenticationTypeNotSupportedException(new Exception("Supporting only basic authentication")))
-        case (_, _) => Success(None)
+        case (_, _) => Success(UnauthenticatedUser)
       }
     }
 
-    private def getUser(userName: String, password: String): Try[User] = {
+    private def getUser(userName: String, password: String): Try[AbstractUser] = {
       logger.info(s"looking for user [$userName]")
 
       // all these inner functions make the overall structure somewhat harder to read.
       // make private functions from them
-      def toUser(searchResult: SearchResult) = {
+      def toUser(searchResult: SearchResult): AbstractUser = {
         def getAttrs(key: String): Seq[String] = {
           Option(searchResult.getAttributes.get(key))
             .map(_.getAll.asScala.toSeq.map(_.toString))
@@ -57,11 +57,14 @@ trait AuthenticationComponent extends DebugEnhancedLogging {
         }
 
         val roles = getAttrs("easyRoles")
-        User(userName,
-          isArchivist = roles.contains("ARCHIVIST"),
-          isAdmin = roles.contains("ADMIN"),
-          groups = getAttrs("easyGroups")
-        )
+        val groups = getAttrs("easyGroups")
+
+        if (roles contains "ADMIN")
+          AdminUser(userName, groups)
+        else if (roles contains "ARCHIVIST")
+          ArchivistUser(userName, groups)
+        else
+          AuthenticatedUser(userName, groups)
       }
 
       // I don't really understand what's going on here. Maybe add one or two lines of explanation?
@@ -81,7 +84,7 @@ trait AuthenticationComponent extends DebugEnhancedLogging {
         case t => Failure(t)
       }
 
-      def findUser(userAttributes: NamingEnumeration[SearchResult]): Try[User] = {
+      def findUser(userAttributes: NamingEnumeration[SearchResult]): Try[AbstractUser] = {
         userAttributes.asScala.toList.headOption match {
           case Some(sr) => Success(toUser(sr))
           case None => Failure(InvalidUserPasswordException(userName, new Exception("not found")))

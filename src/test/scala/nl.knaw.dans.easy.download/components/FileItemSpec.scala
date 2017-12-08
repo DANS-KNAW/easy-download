@@ -22,22 +22,27 @@ import nl.knaw.dans.easy.download.components.RightsFor._
 
 import scala.util.{ Failure, Success }
 
+// rename to FileItemAuthInfoSpec
 class FileItemSpec extends TestSupportFixture {
+
+  // TODO replace `shouldBe Success(())` with `shouldBe a[Success[_]]`, that's enough in this case
 
   "hasDownloadPermissionFor" should "allow archivist" in {
     FileItemAuthInfo(itemId = "uuid/file.txt", owner = "someone",
       dateAvailable = "4016-12-15",
       accessibleTo = RESTRICTED_REQUEST.toString,
       visibleTo = RESTRICTED_REQUEST.toString
-    ).hasDownloadPermissionFor(Some(User("archie", isArchivist = true))) shouldBe Success(())
+    ).hasDownloadPermissionFor(ArchivistUser("archie")) shouldBe Success(())
   }
+
+  // TODO what about admin? never tested, I also saw that in FileItemAuthInfo!
 
   it should "allow owner" in {
     FileItemAuthInfo(itemId = "uuid/file.txt", owner = "someone",
       dateAvailable = "4016-12-15",
       accessibleTo = RESTRICTED_REQUEST.toString,
       visibleTo = RESTRICTED_REQUEST.toString
-    ).hasDownloadPermissionFor(Some(User("someone"))) shouldBe Success(())
+    ).hasDownloadPermissionFor(AuthenticatedUser("someone")) shouldBe Success(())
   }
 
   it should "allow known" in {
@@ -45,7 +50,7 @@ class FileItemSpec extends TestSupportFixture {
       dateAvailable = "2016-12-15",
       accessibleTo = KNOWN.toString,
       visibleTo = KNOWN.toString
-    ).hasDownloadPermissionFor(Some(User("somebody"))) shouldBe Success(())
+    ).hasDownloadPermissionFor(AuthenticatedUser("somebody")) shouldBe Success(())
   }
 
   it should "reject metadata" in {
@@ -53,7 +58,7 @@ class FileItemSpec extends TestSupportFixture {
       dateAvailable = "2016-12-15",
       accessibleTo = KNOWN.toString,
       visibleTo = KNOWN.toString
-    ).hasDownloadPermissionFor(Some(User("somebody"))) should matchPattern {
+    ).hasDownloadPermissionFor(AuthenticatedUser("somebody")) should matchPattern {
       case Failure(t: FileNotFoundException) if t.getMessage == "uuid/file.txt" =>
     }
   }
@@ -63,7 +68,7 @@ class FileItemSpec extends TestSupportFixture {
       dateAvailable = "2016-12-15",
       accessibleTo = KNOWN.toString,
       visibleTo = KNOWN.toString
-    ).hasDownloadPermissionFor(Some(User("someone"))) shouldBe Success(())
+    ).hasDownloadPermissionFor(AuthenticatedUser("someone")) shouldBe Success(())
   }
 
   it should "refuse metadata for others" in {
@@ -71,7 +76,7 @@ class FileItemSpec extends TestSupportFixture {
       dateAvailable = "2016-12-15",
       accessibleTo = KNOWN.toString,
       visibleTo = KNOWN.toString
-    ).hasDownloadPermissionFor(Some(User("somebody"))) should matchPattern {
+    ).hasDownloadPermissionFor(AuthenticatedUser("somebody")) should matchPattern {
       case Failure(t: FileNotFoundException) if t.getMessage == "uuid/file.txt" =>
     }
   }
@@ -81,7 +86,7 @@ class FileItemSpec extends TestSupportFixture {
       dateAvailable = "2016-12-15",
       accessibleTo = KNOWN.toString,
       visibleTo = ANONYMOUS.toString
-    ).hasDownloadPermissionFor(None) should matchPattern {
+    ).hasDownloadPermissionFor(UnauthenticatedUser) should matchPattern {
       case Failure(NotAccessibleException("Please login to download: uuid/data/file.txt")) =>
     }
   }
@@ -91,7 +96,7 @@ class FileItemSpec extends TestSupportFixture {
       dateAvailable = "4016-12-15",
       accessibleTo = KNOWN.toString,
       visibleTo = KNOWN.toString
-    ).hasDownloadPermissionFor(Some(User("somebody"))) should matchPattern {
+    ).hasDownloadPermissionFor(AuthenticatedUser("somebody")) should matchPattern {
       case Failure(NotAccessibleException("Download becomes available on 4016-12-15 [uuid/data/file.txt]")) =>
     }
   }
@@ -101,7 +106,7 @@ class FileItemSpec extends TestSupportFixture {
       dateAvailable = "2016-12-15",
       accessibleTo = RESTRICTED_GROUP.toString,
       visibleTo = ANONYMOUS.toString
-    ).hasDownloadPermissionFor(Some(User("somebody"))) should matchPattern {
+    ).hasDownloadPermissionFor(AuthenticatedUser("somebody")) should matchPattern {
       case Failure(NotAccessibleException("Download not allowed of: uuid/data/file.txt")) =>
     }
   }
@@ -111,7 +116,7 @@ class FileItemSpec extends TestSupportFixture {
       dateAvailable = "2016-12-15",
       accessibleTo = RESTRICTED_GROUP.toString,
       visibleTo = RESTRICTED_GROUP.toString
-    ).hasDownloadPermissionFor(Some(User("somebody"))) should matchPattern {
+    ).hasDownloadPermissionFor(AuthenticatedUser("somebody")) should matchPattern {
       case Failure(t: FileNotFoundException) if t.getMessage == "uuid/data/file.txt" =>
     }
   }
@@ -121,7 +126,7 @@ class FileItemSpec extends TestSupportFixture {
       dateAvailable = "4016-12-15",
       accessibleTo = RESTRICTED_GROUP.toString,
       visibleTo = RESTRICTED_GROUP.toString
-    ).hasDownloadPermissionFor(Some(User("somebody"))) should matchPattern {
+    ).hasDownloadPermissionFor(AuthenticatedUser("somebody")) should matchPattern {
       case Failure(NotAccessibleException("Download becomes available on 4016-12-15 [uuid/data/file.txt]")) =>
     }
   }
