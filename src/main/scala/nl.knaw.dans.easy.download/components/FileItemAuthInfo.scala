@@ -15,27 +15,24 @@
  */
 package nl.knaw.dans.easy.download.components
 
-import nl.knaw.dans.easy.download.components.RightsFor._
 import org.joda.time.DateTime
 
 case class FileItemAuthInfo(itemId: String,
                             owner: String,
                             dateAvailable: String,
                             accessibleTo: String,
-                            visibleTo: String
-                           ) {
+                            visibleTo: String) {
   private val dateAvailableMillis: Long = new DateTime(dateAvailable).getMillis
 
   // TODO json type hints in AuthInfoComponent to replace argument type String by RightsFor
-  val visibleToValue = RightsFor.withName(visibleTo)
-  val accessibleToValue = RightsFor.withName(accessibleTo)
+  private val visibleToValue = RightsFor.withName(visibleTo)
+  private val accessibleToValue = RightsFor.withName(accessibleTo)
 
-  def isDataFile: Boolean = itemId.matches("[^/]+/data/.*") // "[^/]+" matches the uuid of the bag
+  lazy val isDataFile: Boolean = itemId.matches("[^/]+/data/.*") // "[^/]+" matches the uuid of the bag
+
   def hasEmbargo: Boolean = dateAvailableMillis > DateTime.now.getMillis
-  def isVisible(user: User): Boolean = {
-    user match {
-      case UnauthenticatedUser => visibleToValue == ANONYMOUS
-      case _ => visibleToValue == ANONYMOUS || visibleToValue == KNOWN
-    }
-  }
+
+  def isVisibleTo(rights: RightsFor.Value): Boolean = visibleToValue == rights
+
+  def isAccessibleTo(rights: RightsFor.Value): Boolean = accessibleToValue == rights
 }

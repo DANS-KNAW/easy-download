@@ -42,7 +42,7 @@ case object UnauthenticatedUser extends User("", Seq.empty) {
       Failure(new FileNotFoundException(fileItem.itemId))
     else if (fileItem.hasEmbargo)
       Failure(NotAccessibleException(s"Download becomes available on ${ fileItem.dateAvailable } [${ fileItem.itemId }]"))
-    else if (fileItem.visibleToValue == ANONYMOUS)
+    else if (fileItem.isVisibleTo(ANONYMOUS))
       Success(())
     else
       Failure(new FileNotFoundException(fileItem.itemId))
@@ -51,9 +51,9 @@ case object UnauthenticatedUser extends User("", Seq.empty) {
   def canAccess(fileItem: FileItemAuthInfo): Try[Unit] = {
     if (fileItem.hasEmbargo)
       Failure(NotAccessibleException(s"Download becomes available on ${ fileItem.dateAvailable } [${ fileItem.itemId }]"))
-    else if (fileItem.accessibleToValue == ANONYMOUS)
+    else if (fileItem.isAccessibleTo(ANONYMOUS))
       Success(())
-    else if (fileItem.accessibleToValue == KNOWN)
+    else if (fileItem.isAccessibleTo(KNOWN))
       Failure(NotAccessibleException(s"Please login to download: ${ fileItem.itemId }"))
     else
       Failure(NotAccessibleException(s"Download not allowed of: ${ fileItem.itemId }")) // might require group/permission
@@ -68,7 +68,7 @@ case class AuthenticatedUser(id: String, groups: Seq[String] = Seq.empty) extend
       Failure(new FileNotFoundException(fileItem.itemId))
     else if (fileItem.hasEmbargo)
       Failure(NotAccessibleException(s"Download becomes available on ${ fileItem.dateAvailable } [${ fileItem.itemId }]"))
-    else if (fileItem.visibleToValue == ANONYMOUS || fileItem.visibleToValue == KNOWN)
+    else if (fileItem.isVisibleTo(ANONYMOUS) || fileItem.isVisibleTo(KNOWN))
       Success(())
     else
       Failure(new FileNotFoundException(fileItem.itemId))
@@ -79,7 +79,7 @@ case class AuthenticatedUser(id: String, groups: Seq[String] = Seq.empty) extend
       Success(())
     else if (fileItem.hasEmbargo)
       Failure(NotAccessibleException(s"Download becomes available on ${ fileItem.dateAvailable } [${ fileItem.itemId }]"))
-    else if (fileItem.accessibleToValue == ANONYMOUS || fileItem.accessibleToValue == KNOWN)
+    else if (fileItem.isAccessibleTo(ANONYMOUS) || fileItem.isAccessibleTo(KNOWN))
       Success(())
     else
       Failure(NotAccessibleException(s"Download not allowed of: ${ fileItem.itemId }")) // might require group/permission
