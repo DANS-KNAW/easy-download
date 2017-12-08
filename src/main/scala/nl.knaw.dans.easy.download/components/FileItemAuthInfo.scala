@@ -15,13 +15,10 @@
  */
 package nl.knaw.dans.easy.download.components
 
-import java.io.FileNotFoundException
-
-import nl.knaw.dans.easy.download.NotAccessibleException
 import nl.knaw.dans.easy.download.components.RightsFor._
 import org.joda.time.DateTime
 
-import scala.util.{ Failure, Success, Try }
+import scala.util.Try
 
 case class FileItemAuthInfo(itemId: String,
                             owner: String,
@@ -42,37 +39,12 @@ case class FileItemAuthInfo(itemId: String,
     } yield ()
   }
 
-  @deprecated
-  private def visibleTo(user: AbstractUser): Try[Unit] = {
-    user match {
-      case ArchivistUser(_, _) | AdminUser(_, _) => Success(())
-      case AuthenticatedUser(id, _) if id == owner => Success(())
-      case _ if !isDataFile => Failure(new FileNotFoundException(itemId))
-      case _ if hasEmbargo => Failure(NotAccessibleException(s"Download becomes available on $dateAvailable [$itemId]"))
-      case usr if isVisible(usr) => Success(())
-      case _ => Failure(new FileNotFoundException(itemId))
-    }
-  }
-
   def isDataFile: Boolean = itemId.matches("[^/]+/data/.*") // "[^/]+" matches the uuid of the bag
   def hasEmbargo: Boolean = dateAvailableMillis > DateTime.now.getMillis
   def isVisible(user: AbstractUser): Boolean = {
     user match {
       case UnauthenticatedUser => visibleToValue == ANONYMOUS
       case _ => visibleToValue == ANONYMOUS || visibleToValue == KNOWN
-    }
-  }
-
-  @deprecated
-  private def accessibleTo(user: AbstractUser): Try[Unit] = {
-    user match {
-      case ArchivistUser(_, _) | AdminUser(_, _) => Success(())
-      case AuthenticatedUser(id, _) if id == owner => Success(())
-      case _ if hasEmbargo => Failure(NotAccessibleException(s"Download becomes available on $dateAvailable [$itemId]"))
-      case _ if accessibleToValue == ANONYMOUS => Success(())
-      case UnauthenticatedUser if accessibleToValue == KNOWN => Failure(NotAccessibleException(s"Please login to download: $itemId"))
-      case _ if accessibleToValue == KNOWN => Success(())
-      case _ => Failure(NotAccessibleException(s"Download not allowed of: $itemId")) // might require group/permission
     }
   }
 }
