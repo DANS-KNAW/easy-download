@@ -80,7 +80,14 @@ class AuthInfoComponentSpec extends TestSupportFixture with MockFactory {
          |}""".stripMargin
     )
     inside(wiring.authInfo.getFileItem(uuid, path)) {
-      case Failure(t: NoSuchElementException) => t.getMessage shouldBe "No value found for 'invalidValue'"
+      case Failure(t) => t.getMessage shouldBe
+        s"""parse error [No value found for 'invalidValue'] for: {
+          |  "itemId":"$uuid/some.file",
+          |  "owner":"someone",
+          |  "dateAvailable":"1992-07-30",
+          |  "accessibleTo":"invalidValue",
+          |  "visibleTo":"ANONYMOUS"
+          |}""".stripMargin
     }
   }
 }

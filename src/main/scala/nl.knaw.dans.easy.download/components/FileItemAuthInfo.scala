@@ -16,11 +16,14 @@
 package nl.knaw.dans.easy.download.components
 
 import java.io.FileNotFoundException
+import java.util.NoSuchElementException
 
 import nl.knaw.dans.easy.download.NotAccessibleException
 import nl.knaw.dans.easy.download.components.RightsFor._
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
+import org.json4s._
+import org.json4s.native.JsonMethods.parse
 
 import scala.util.{ Failure, Success, Try }
 
@@ -68,6 +71,34 @@ case class FileItemAuthInfo(itemId: String,
     else {
       val date = DateTimeFormat.forPattern("yyyy-MM-dd").print(dateAvailable)
       Failure(NotAccessibleException(s"Download becomes available on $date [$itemId]"))
+    }
+  }
+}
+
+object FileItemAuthInfo {
+
+  private implicit val jsonFormats: Formats = DefaultFormats
+
+  case class IntermediateFileItem(// TODO replace class with typeHints for DefaultFormats?
+                                  itemId: String,
+                                  owner: String,
+                                  dateAvailable: String,
+                                  accessibleTo: String,
+                                  visibleTo: String
+                                 )
+  def fromJson(input: String): Try[FileItemAuthInfo] = {
+    Try(parse(input)
+      .extract[IntermediateFileItem]
+    ).recoverWith { case t =>
+      Failure(new Exception(s"parse error [${ t.getMessage }] for: $input", t))
+    }.map(authInfo => FileItemAuthInfo(
+      authInfo.itemId,
+      authInfo.owner,
+      new DateTime(authInfo.dateAvailable),
+      RightsFor.withName(authInfo.accessibleTo),
+      RightsFor.withName(authInfo.visibleTo)
+    )).recoverWith { case t: NoSuchElementException =>
+      Failure(new Exception(s"parse error [${ t.getMessage }] for: $input"))
     }
   }
 }
