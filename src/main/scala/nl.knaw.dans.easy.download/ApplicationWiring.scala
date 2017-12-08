@@ -19,7 +19,7 @@ import java.net.URI
 import javax.naming.Context
 import javax.naming.ldap.{ InitialLdapContext, LdapContext }
 
-import nl.knaw.dans.easy.download.components.{ AuthorisationComponent, AuthenticationComponent, BagStoreComponent, HttpWorkerComponent }
+import nl.knaw.dans.easy.download.components.{ AuthenticationComponent, AuthorisationComponent, BagStoreComponent, HttpWorkerComponent }
 
 import scala.util.Try
 

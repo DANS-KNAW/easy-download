@@ -29,7 +29,7 @@ import scala.util.{ Failure, Success, Try }
 
 /**
  * @param itemId uuid of the bag + path of payload item from files.xml
- * @param owner depositor of the bag
+ * @param owner  depositor of the bag
  */
 case class FileItem(itemId: String,
                     owner: String,
@@ -82,12 +82,12 @@ object FileItem {
   private implicit val jsonFormats: Formats = DefaultFormats
 
   private case class IntermediateFileItem(// TODO replace class with typeHints for DefaultFormats?
-                                  itemId: String,
-                                  owner: String,
-                                  dateAvailable: String,
-                                  accessibleTo: String,
-                                  visibleTo: String
-                                 )
+                                          itemId: String,
+                                          owner: String,
+                                          dateAvailable: String,
+                                          accessibleTo: String,
+                                          visibleTo: String
+                                         )
   def fromJson(input: String): Try[FileItem] = {
     Try(parse(input)
       .extract[IntermediateFileItem]

@@ -24,7 +24,7 @@ import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.eclipse.jetty.http.HttpStatus.NOT_FOUND_404
 import org.scalatra.auth.strategy.BasicAuthStrategy.BasicAuthRequest
 
-import scala.util.{ Failure, Success, Try }
+import scala.util.{ Failure, Try }
 import scalaj.http.HttpResponse
 
 trait EasyDownloadApp extends DebugEnhancedLogging with ApplicationWiring {
@@ -33,7 +33,7 @@ trait EasyDownloadApp extends DebugEnhancedLogging with ApplicationWiring {
 
   /**
    * @param bagId uuid of a bag
-   * @param path path of an item in files.xml of the bag
+   * @param path  path of an item in files.xml of the bag
    */
   def downloadFile(bagId: UUID,
                    path: Path,

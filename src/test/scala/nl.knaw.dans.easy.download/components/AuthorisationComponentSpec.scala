@@ -82,12 +82,12 @@ class AuthorisationComponentSpec extends TestSupportFixture with MockFactory {
     inside(wiring.authorisation.getFileItem(uuid, path)) {
       case Failure(t) => t.getMessage shouldBe
         s"""parse error [No value found for 'invalidValue'] for: {
-          |  "itemId":"$uuid/some.file",
-          |  "owner":"someone",
-          |  "dateAvailable":"1992-07-30",
-          |  "accessibleTo":"invalidValue",
-          |  "visibleTo":"ANONYMOUS"
-          |}""".stripMargin
+           |  "itemId":"$uuid/some.file",
+           |  "owner":"someone",
+           |  "dateAvailable":"1992-07-30",
+           |  "accessibleTo":"invalidValue",
+           |  "visibleTo":"ANONYMOUS"
+           |}""".stripMargin
     }
   }
 }
