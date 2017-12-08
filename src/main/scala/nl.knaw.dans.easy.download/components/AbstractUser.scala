@@ -27,6 +27,13 @@ sealed abstract class AbstractUser(id: String, groups: Seq[String]) {
   def canView(fileItem: FileItemAuthInfo): Try[Unit]
 
   def canAccess(fileItem: FileItemAuthInfo): Try[Unit]
+
+  def hasDownloadPermissionFor(fileItem: FileItemAuthInfo): Try[Unit] = {
+    for {
+      _ <- canView(fileItem)
+      _ <- canAccess(fileItem)
+    } yield ()
+  }
 }
 
 case object UnauthenticatedUser extends AbstractUser("", Seq.empty) {

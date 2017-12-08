@@ -32,6 +32,7 @@ case class FileItemAuthInfo(itemId: String,
   val visibleToValue = RightsFor.withName(visibleTo)
   val accessibleToValue = RightsFor.withName(accessibleTo)
 
+  @deprecated
   def hasDownloadPermissionFor(user: AbstractUser): Try[Unit] = {
     for {
       _ <- user.canView(this)
