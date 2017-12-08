@@ -28,9 +28,9 @@ import scala.util.Try
 trait AuthorisationComponent extends DebugEnhancedLogging {
   this: HttpWorkerComponent =>
 
-  val authInfo: AuthInfo
+  val authorisation: Authorisation
 
-  trait AuthInfo {
+  trait Authorisation {
     val baseUri: URI
 
     private implicit val jsonFormats: Formats = DefaultFormats
@@ -40,8 +40,8 @@ trait AuthorisationComponent extends DebugEnhancedLogging {
         f <- Try(escapePath(path))
         uri = baseUri.resolve(s"$bagId/$f")
         jsonString <- http.getHttpAsString(uri)
-        authInfo <- FileItem.fromJson(jsonString)
-      } yield authInfo
+        fileItem <- FileItem.fromJson(jsonString)
+      } yield fileItem
     }
   }
 }

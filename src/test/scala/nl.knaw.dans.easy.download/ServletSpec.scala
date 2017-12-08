@@ -51,7 +51,7 @@ class ServletSpec extends TestSupportFixture with ServletFixture
     (app.http.copyHttpStream(_: URI)) expects new URI(s"http://localhost:20110/bags/$uuid/$path") once()
   }
 
-  private def expectAuthInfo(path: Path) = {
+  private def expectAuthorisation(path: Path) = {
     (app.http.getHttpAsString(_: URI)) expects new URI(s"http://localhost:20170/$uuid/$path") once()
   }
 
@@ -73,7 +73,7 @@ class ServletSpec extends TestSupportFixture with ServletFixture
       os().write(s"content of $uuid/$path ")
       Success(())
     })
-    expectAuthInfo(path) returning Success(
+    expectAuthorisation(path) returning Success(
       s"""{
          |  "itemId":"$uuid/$path",
          |  "owner":"someone",
@@ -89,9 +89,9 @@ class ServletSpec extends TestSupportFixture with ServletFixture
   }
 
 
-  it should "report invalid authInfo results" in {
+  it should "report invalid authorisation results" in {
     val path = Paths.get("some.file")
-    expectAuthInfo(path) returning Success(
+    expectAuthorisation(path) returning Success(
       s"""{
          |  "itemId":"$uuid/some.file",
          |  "owner":"someone",
@@ -102,7 +102,7 @@ class ServletSpec extends TestSupportFixture with ServletFixture
     )
     expectAuthentication() returning Success(None)
     get(s"ark:/$naan/$uuid/some.file") {
-      // logged message shown in AuthInfoSpec
+      // logged message shown in AuthorisationSpec
       body shouldBe s"not expected exception"
       status shouldBe INTERNAL_SERVER_ERROR_500
     }
@@ -111,7 +111,7 @@ class ServletSpec extends TestSupportFixture with ServletFixture
   it should "report invisible as not found" in {
     val path = Paths.get("some.file")
     expectAuthentication() returning Success(None)
-    expectAuthInfo(path) returning Success(
+    expectAuthorisation(path) returning Success(
       s"""{
          |  "itemId":"$uuid/some.file",
          |  "owner":"someone",
@@ -129,7 +129,7 @@ class ServletSpec extends TestSupportFixture with ServletFixture
   it should "forbid download for not authenticated user" in {
     val path = Paths.get("data/some.file")
     expectAuthentication() returning Success(None)
-    expectAuthInfo(path) returning Success(
+    expectAuthorisation(path) returning Success(
       s"""{
          |  "itemId":"$uuid/$path",
          |  "owner":"someone",

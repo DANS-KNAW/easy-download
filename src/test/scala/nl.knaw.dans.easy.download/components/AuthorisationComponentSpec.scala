@@ -29,7 +29,7 @@ class AuthorisationComponentSpec extends TestSupportFixture with MockFactory {
   private class TestWiring extends AuthorisationComponent
     with HttpWorkerComponent {
     override val http: HttpWorker = mock[HttpWorker]
-    override val authInfo: AuthInfo = new AuthInfo {
+    override val authorisation: Authorisation = new Authorisation {
       override val baseUri: URI = new URI("http://localhost:20170/")
     }
   }
@@ -37,7 +37,7 @@ class AuthorisationComponentSpec extends TestSupportFixture with MockFactory {
   private val uuid = UUID.randomUUID()
 
   private def expectAutInfoRequest(path: Path) = {
-    (wiring.http.getHttpAsString(_: URI)) expects wiring.authInfo.baseUri.resolve(s"$uuid/$path") once()
+    (wiring.http.getHttpAsString(_: URI)) expects wiring.authorisation.baseUri.resolve(s"$uuid/$path") once()
   }
 
   "getOutInfo" should "parse the service response" in {
@@ -51,7 +51,7 @@ class AuthorisationComponentSpec extends TestSupportFixture with MockFactory {
          |  "visibleTo":"ANONYMOUS"
          |}""".stripMargin
     )
-    wiring.authInfo.getFileItem(uuid, path) should matchPattern {
+    wiring.authorisation.getFileItem(uuid, path) should matchPattern {
       case Success(FileItem(_, "someone", _, KNOWN, ANONYMOUS)) =>
     }
   }
@@ -61,7 +61,7 @@ class AuthorisationComponentSpec extends TestSupportFixture with MockFactory {
     expectAutInfoRequest(path) returning Success(
       s"""{"nonsense":"value"}"""
     )
-    inside(wiring.authInfo.getFileItem(uuid, path)) {
+    inside(wiring.authorisation.getFileItem(uuid, path)) {
       case Failure(t) => t should have message
         """parse error [No usable value for itemId
           |Did not find value which can be converted into java.lang.String] for: {"nonsense":"value"}""".stripMargin
@@ -79,7 +79,7 @@ class AuthorisationComponentSpec extends TestSupportFixture with MockFactory {
          |  "visibleTo":"ANONYMOUS"
          |}""".stripMargin
     )
-    inside(wiring.authInfo.getFileItem(uuid, path)) {
+    inside(wiring.authorisation.getFileItem(uuid, path)) {
       case Failure(t) => t.getMessage shouldBe
         s"""parse error [No value found for 'invalidValue'] for: {
           |  "itemId":"$uuid/some.file",

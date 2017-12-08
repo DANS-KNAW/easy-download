@@ -40,7 +40,7 @@ trait ApplicationWiring extends HttpWorkerComponent
   override val bagStore: BagStore = new BagStore {
     override val baseUri: URI = new URI(configuration.properties.getString("bag-store.url"))
   }
-  override val authInfo: AuthInfo = new AuthInfo {
+  override val authorisation: Authorisation = new Authorisation {
     override val baseUri: URI = new URI(configuration.properties.getString("auth-info.url"))
   }
 

@@ -93,12 +93,12 @@ object FileItem {
       .extract[IntermediateFileItem]
     ).recoverWith { case t =>
       Failure(new Exception(s"parse error [${ t.getMessage }] for: $input", t))
-    }.map(authInfo => FileItem(
-      authInfo.itemId,
-      authInfo.owner,
-      new DateTime(authInfo.dateAvailable),
-      RightsFor.withName(authInfo.accessibleTo),
-      RightsFor.withName(authInfo.visibleTo)
+    }.map(fileItem => FileItem(
+      fileItem.itemId,
+      fileItem.owner,
+      new DateTime(fileItem.dateAvailable),
+      RightsFor.withName(fileItem.accessibleTo),
+      RightsFor.withName(fileItem.visibleTo)
     )).recoverWith { case t: NoSuchElementException =>
       Failure(new Exception(s"parse error [${ t.getMessage }] for: $input"))
     }

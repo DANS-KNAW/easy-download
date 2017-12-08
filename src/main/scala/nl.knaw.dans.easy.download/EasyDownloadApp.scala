@@ -41,7 +41,7 @@ trait EasyDownloadApp extends DebugEnhancedLogging with ApplicationWiring {
                    outputStreamProducer: () => OutputStream
                   ): Try[Unit] = {
     for {
-      fileItem <- authInfo.getFileItem(bagId, path)
+      fileItem <- authorisation.getFileItem(bagId, path)
       _ <- fileItem.availableFor(user)
       _ <- bagStore.copyStream(bagId, path)(outputStreamProducer).recoverWith {
         case HttpStatusException(_, HttpResponse(_, NOT_FOUND_404, _)) =>
