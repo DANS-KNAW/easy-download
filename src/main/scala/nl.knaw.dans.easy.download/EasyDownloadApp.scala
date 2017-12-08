@@ -45,7 +45,7 @@ trait EasyDownloadApp extends AutoCloseable
       fileItem <- authInfo.getFileItem(bagId, path)
       _ <- fileItem.availableFor(user)
       _ <- bagStore.copyStream(bagId, path)(outputStreamProducer).recoverWith {
-        case HttpStatusException(message, HttpResponse(_, NOT_FOUND_404, _)) =>
+        case HttpStatusException(_, HttpResponse(_, NOT_FOUND_404, _)) =>
           Failure(new Exception(s"invalid bag, file downloadable but not found: $path"))
       }
     } yield ()

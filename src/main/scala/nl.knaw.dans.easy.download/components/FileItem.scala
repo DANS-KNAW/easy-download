@@ -27,6 +27,10 @@ import org.json4s.native.JsonMethods.parse
 
 import scala.util.{ Failure, Success, Try }
 
+/**
+ * @param itemId uuid of the bag + path of payload item from files.xml
+ * @param owner depositor of the bag
+ */
 case class FileItem(itemId: String,
                     owner: String,
                     dateAvailable: DateTime,
@@ -41,8 +45,8 @@ case class FileItem(itemId: String,
   }
 
   private def visibleTo(user: Option[User]): Try[Unit] = {
-    if (isOwnerOrArchivist(user)) Success(())
-    else noEmbargo(visibleTo).flatMap(_ =>
+    if (hasPower(user)) Success(())
+    else noEmbargo().flatMap(_ =>
       if (visibleTo == ANONYMOUS || (visibleTo == KNOWN && user.isDefined))
         Success(())
       else Failure(new FileNotFoundException(itemId))
@@ -50,8 +54,8 @@ case class FileItem(itemId: String,
   }
 
   private def accessibleTo(user: Option[User]): Try[Unit] = {
-    if (isOwnerOrArchivist(user)) Success(())
-    else noEmbargo(accessibleTo).flatMap(_ =>
+    if (hasPower(user)) Success(())
+    else noEmbargo().flatMap(_ =>
       if (accessibleTo == ANONYMOUS) Success(())
       else if (accessibleTo == KNOWN)
              if (user.isDefined) Success(())
@@ -60,11 +64,11 @@ case class FileItem(itemId: String,
     )
   }
 
-  private def isOwnerOrArchivist(user: Option[User]): Boolean = {
+  private def hasPower(user: Option[User]): Boolean = {
     user.exists(user => user.isAdmin || user.isArchivist || user.id == owner)
   }
 
-  def noEmbargo(rightsFor: RightsFor.Value): Try[Unit] = {
+  def noEmbargo(): Try[Unit] = {
     if (dateAvailable.isBeforeNow) Success(())
     else {
       val date = DateTimeFormat.forPattern("yyyy-MM-dd").print(dateAvailable)
@@ -77,7 +81,7 @@ object FileItem {
 
   private implicit val jsonFormats: Formats = DefaultFormats
 
-  case class IntermediateFileItem(// TODO replace class with typeHints for DefaultFormats?
+  private case class IntermediateFileItem(// TODO replace class with typeHints for DefaultFormats?
                                   itemId: String,
                                   owner: String,
                                   dateAvailable: String,

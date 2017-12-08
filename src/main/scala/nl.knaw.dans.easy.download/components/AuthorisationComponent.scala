@@ -30,10 +30,10 @@ trait AuthorisationComponent extends DebugEnhancedLogging {
 
   val authInfo: AuthInfo
 
-  private implicit val jsonFormats: Formats = DefaultFormats
-
   trait AuthInfo {
     val baseUri: URI
+
+    private implicit val jsonFormats: Formats = DefaultFormats
 
     def getFileItem(bagId: UUID, path: Path): Try[FileItem] = {
       for {
