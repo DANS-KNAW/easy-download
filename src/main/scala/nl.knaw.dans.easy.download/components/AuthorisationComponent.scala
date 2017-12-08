@@ -25,7 +25,7 @@ import org.json4s.{ DefaultFormats, _ }
 
 import scala.util.Try
 
-trait AuthInfoComponent extends DebugEnhancedLogging {
+trait AuthorisationComponent extends DebugEnhancedLogging {
   this: HttpWorkerComponent =>
 
   val authInfo: AuthInfo
@@ -35,12 +35,12 @@ trait AuthInfoComponent extends DebugEnhancedLogging {
   trait AuthInfo {
     val baseUri: URI
 
-    def getFileItem(bagId: UUID, path: Path): Try[FileItemAuthInfo] = {
+    def getFileItem(bagId: UUID, path: Path): Try[FileItem] = {
       for {
         f <- Try(escapePath(path))
         uri = baseUri.resolve(s"$bagId/$f")
         jsonString <- http.getHttpAsString(uri)
-        authInfo <- FileItemAuthInfo.fromJson(jsonString)
+        authInfo <- FileItem.fromJson(jsonString)
       } yield authInfo
     }
   }

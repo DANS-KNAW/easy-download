@@ -25,8 +25,8 @@ import org.scalamock.scalatest.MockFactory
 
 import scala.util.{ Failure, Success }
 
-class AuthInfoComponentSpec extends TestSupportFixture with MockFactory {
-  private class TestWiring extends AuthInfoComponent
+class AuthorisationComponentSpec extends TestSupportFixture with MockFactory {
+  private class TestWiring extends AuthorisationComponent
     with HttpWorkerComponent {
     override val http: HttpWorker = mock[HttpWorker]
     override val authInfo: AuthInfo = new AuthInfo {
@@ -52,7 +52,7 @@ class AuthInfoComponentSpec extends TestSupportFixture with MockFactory {
          |}""".stripMargin
     )
     wiring.authInfo.getFileItem(uuid, path) should matchPattern {
-      case Success(FileItemAuthInfo(_, "someone", _, KNOWN, ANONYMOUS)) =>
+      case Success(FileItem(_, "someone", _, KNOWN, ANONYMOUS)) =>
     }
   }
 

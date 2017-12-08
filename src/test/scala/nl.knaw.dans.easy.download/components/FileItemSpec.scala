@@ -26,103 +26,103 @@ import scala.util.{ Failure, Success }
 class FileItemSpec extends TestSupportFixture {
 
   "hasDownloadPermissionFor" should "allow archivist" in {
-    FileItemAuthInfo(itemId = "uuid/file.txt", owner = "someone",
+    FileItem(itemId = "uuid/file.txt", owner = "someone",
       dateAvailable = new DateTime("4016-12-15"),
       accessibleTo = RESTRICTED_REQUEST,
       visibleTo = RESTRICTED_REQUEST
-    ).hasDownloadPermissionFor(Some(User("archie", isArchivist = true))) shouldBe Success(())
+    ).availableFor(Some(User("archie", isArchivist = true))) shouldBe Success(())
   }
 
   it should "allow owner" in {
-    FileItemAuthInfo(itemId = "uuid/file.txt", owner = "someone",
+    FileItem(itemId = "uuid/file.txt", owner = "someone",
       dateAvailable = new DateTime("4016-12-15"),
       accessibleTo = RESTRICTED_REQUEST,
       visibleTo = RESTRICTED_REQUEST
-    ).hasDownloadPermissionFor(Some(User("someone"))) shouldBe Success(())
+    ).availableFor(Some(User("someone"))) shouldBe Success(())
   }
 
   it should "allow known" in {
-    FileItemAuthInfo(itemId = "uuid/data/file.txt", owner = "someone",
+    FileItem(itemId = "uuid/data/file.txt", owner = "someone",
       dateAvailable = new DateTime("2016-12-15"),
       accessibleTo = KNOWN,
       visibleTo = KNOWN
-    ).hasDownloadPermissionFor(Some(User("somebody"))) shouldBe Success(())
+    ).availableFor(Some(User("somebody"))) shouldBe Success(())
   }
 
   it should "reject metadata" in {
-    FileItemAuthInfo(itemId = "uuid/file.txt", owner = "someone",
+    FileItem(itemId = "uuid/file.txt", owner = "someone",
       dateAvailable = new DateTime("2016-12-15"),
       accessibleTo = KNOWN,
       visibleTo = KNOWN
-    ).hasDownloadPermissionFor(Some(User("somebody"))) should matchPattern {
+    ).availableFor(Some(User("somebody"))) should matchPattern {
       case Failure(t: FileNotFoundException) if t.getMessage == "uuid/file.txt" =>
     }
   }
 
   it should "allow metadata for owner" in {
-    FileItemAuthInfo(itemId = "uuid/file.txt", owner = "someone",
+    FileItem(itemId = "uuid/file.txt", owner = "someone",
       dateAvailable = new DateTime("2016-12-15"),
       accessibleTo = KNOWN,
       visibleTo = KNOWN
-    ).hasDownloadPermissionFor(Some(User("someone"))) shouldBe Success(())
+    ).availableFor(Some(User("someone"))) shouldBe Success(())
   }
 
   it should "refuse metadata for others" in {
-    FileItemAuthInfo(itemId = "uuid/file.txt", owner = "someone",
+    FileItem(itemId = "uuid/file.txt", owner = "someone",
       dateAvailable = new DateTime("2016-12-15"),
       accessibleTo = KNOWN,
       visibleTo = KNOWN
-    ).hasDownloadPermissionFor(Some(User("somebody"))) should matchPattern {
+    ).availableFor(Some(User("somebody"))) should matchPattern {
       case Failure(t: FileNotFoundException) if t.getMessage == "uuid/file.txt" =>
     }
   }
 
   it should "announce availability after login" in {
-    FileItemAuthInfo(itemId = "uuid/data/file.txt", owner = "someone",
+    FileItem(itemId = "uuid/data/file.txt", owner = "someone",
       dateAvailable = new DateTime("2016-12-15"),
       accessibleTo = KNOWN,
       visibleTo = ANONYMOUS
-    ).hasDownloadPermissionFor(None) should matchPattern {
+    ).availableFor(None) should matchPattern {
       case Failure(NotAccessibleException("Please login to download: uuid/data/file.txt")) =>
     }
   }
 
   it should "announce availability if under embargo" in {
-    FileItemAuthInfo(itemId = "uuid/data/file.txt", owner = "someone",
+    FileItem(itemId = "uuid/data/file.txt", owner = "someone",
       dateAvailable = new DateTime("4016-12-15"),
       accessibleTo = KNOWN,
       visibleTo = KNOWN
-    ).hasDownloadPermissionFor(Some(User("somebody"))) should matchPattern {
+    ).availableFor(Some(User("somebody"))) should matchPattern {
       case Failure(NotAccessibleException("Download becomes available on 4016-12-15 [uuid/data/file.txt]")) =>
     }
   }
 
   it should "refuse to user without group" in {
-    FileItemAuthInfo(itemId = "uuid/data/file.txt", owner = "someone",
+    FileItem(itemId = "uuid/data/file.txt", owner = "someone",
       dateAvailable = new DateTime("2016-12-15"),
       accessibleTo = RESTRICTED_GROUP,
       visibleTo = ANONYMOUS
-    ).hasDownloadPermissionFor(Some(User("somebody"))) should matchPattern {
+    ).availableFor(Some(User("somebody"))) should matchPattern {
       case Failure(NotAccessibleException("Download not allowed of: uuid/data/file.txt")) =>
     }
   }
 
   it should "invisible for user without group" in {
-    FileItemAuthInfo(itemId = "uuid/data/file.txt", owner = "someone",
+    FileItem(itemId = "uuid/data/file.txt", owner = "someone",
       dateAvailable = new DateTime("2016-12-15"),
       accessibleTo = RESTRICTED_GROUP,
       visibleTo = RESTRICTED_GROUP
-    ).hasDownloadPermissionFor(Some(User("somebody"))) should matchPattern {
+    ).availableFor(Some(User("somebody"))) should matchPattern {
       case Failure(t: FileNotFoundException) if t.getMessage == "uuid/data/file.txt" =>
     }
   }
 
   it should "announce availability if under embargo for group" in {
-    FileItemAuthInfo(itemId = "uuid/data/file.txt", owner = "someone",
+    FileItem(itemId = "uuid/data/file.txt", owner = "someone",
       dateAvailable = new DateTime("4016-12-15"),
       accessibleTo = RESTRICTED_GROUP,
       visibleTo = RESTRICTED_GROUP
-    ).hasDownloadPermissionFor(Some(User("somebody"))) should matchPattern {
+    ).availableFor(Some(User("somebody"))) should matchPattern {
       case Failure(NotAccessibleException("Download becomes available on 4016-12-15 [uuid/data/file.txt]")) =>
     }
   }

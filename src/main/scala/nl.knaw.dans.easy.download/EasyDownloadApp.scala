@@ -32,10 +32,14 @@ trait EasyDownloadApp extends AutoCloseable
 
   def authenticate(authRequest: BasicAuthRequest): Try[Option[User]] = authentication.authenticate(authRequest)
 
-  def copyStream(bagId: UUID, path: Path, user: Option[User], outputStreamProducer: () => OutputStream): Try[Unit] = {
+  def downloadFile(bagId: UUID,
+                   path: Path,
+                   user: Option[User],
+                   outputStreamProducer: () => OutputStream
+                  ): Try[Unit] = {
     for {
       fileItem <- authInfo.getFileItem(bagId, path)
-      _ <- fileItem.hasDownloadPermissionFor(user)
+      _ <- fileItem.availableFor(user)
       _ <- bagStore.copyStream(bagId, path)(outputStreamProducer).recoverWith {
         case HttpStatusException(message, HttpResponse(_, NOT_FOUND_404, _)) =>
           Failure(new Exception(s"invalid bag, file downloadable but not found: $path"))

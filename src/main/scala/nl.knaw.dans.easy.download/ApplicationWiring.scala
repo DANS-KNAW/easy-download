@@ -19,7 +19,7 @@ import java.net.URI
 import javax.naming.Context
 import javax.naming.ldap.{ InitialLdapContext, LdapContext }
 
-import nl.knaw.dans.easy.download.components.{ AuthInfoComponent, AuthenticationComponent, BagStoreComponent, HttpWorkerComponent }
+import nl.knaw.dans.easy.download.components.{ AuthorisationComponent, AuthenticationComponent, BagStoreComponent, HttpWorkerComponent }
 
 import scala.util.Try
 
@@ -27,7 +27,7 @@ import scala.util.Try
  * Initializes and wires together the components of this application.
  */
 trait ApplicationWiring extends HttpWorkerComponent
-  with AuthInfoComponent
+  with AuthorisationComponent
   with AuthenticationComponent
   with BagStoreComponent {
 

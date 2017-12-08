@@ -27,13 +27,13 @@ import org.json4s.native.JsonMethods.parse
 
 import scala.util.{ Failure, Success, Try }
 
-case class FileItemAuthInfo(itemId: String,
-                            owner: String,
-                            dateAvailable: DateTime,
-                            accessibleTo: RightsFor.Value,
-                            visibleTo: RightsFor.Value
-                           ) {
-  def hasDownloadPermissionFor(user: Option[User]): Try[Unit] = {
+case class FileItem(itemId: String,
+                    owner: String,
+                    dateAvailable: DateTime,
+                    accessibleTo: RightsFor.Value,
+                    visibleTo: RightsFor.Value
+                   ) {
+  def availableFor(user: Option[User]): Try[Unit] = {
     for {
       _ <- visibleTo(user)
       _ <- accessibleTo(user)
@@ -75,7 +75,7 @@ case class FileItemAuthInfo(itemId: String,
   }
 }
 
-object FileItemAuthInfo {
+object FileItem {
 
   private implicit val jsonFormats: Formats = DefaultFormats
 
@@ -86,12 +86,12 @@ object FileItemAuthInfo {
                                   accessibleTo: String,
                                   visibleTo: String
                                  )
-  def fromJson(input: String): Try[FileItemAuthInfo] = {
+  def fromJson(input: String): Try[FileItem] = {
     Try(parse(input)
       .extract[IntermediateFileItem]
     ).recoverWith { case t =>
       Failure(new Exception(s"parse error [${ t.getMessage }] for: $input", t))
-    }.map(authInfo => FileItemAuthInfo(
+    }.map(authInfo => FileItem(
       authInfo.itemId,
       authInfo.owner,
       new DateTime(authInfo.dateAvailable),
