@@ -49,32 +49,12 @@ class FileItemSpec extends TestSupportFixture {
     ).availableFor(Some(User("somebody"))) shouldBe Success(())
   }
 
-  it should "reject metadata" in {
-    FileItem(itemId = "uuid/file.txt", owner = "someone",
-      dateAvailable = new DateTime("2016-12-15"),
-      accessibleTo = KNOWN,
-      visibleTo = KNOWN
-    ).availableFor(Some(User("somebody"))) should matchPattern {
-      case Failure(t: FileNotFoundException) if t.getMessage == "uuid/file.txt" =>
-    }
-  }
-
   it should "allow metadata for owner" in {
     FileItem(itemId = "uuid/file.txt", owner = "someone",
       dateAvailable = new DateTime("2016-12-15"),
       accessibleTo = KNOWN,
       visibleTo = KNOWN
     ).availableFor(Some(User("someone"))) shouldBe Success(())
-  }
-
-  it should "refuse metadata for others" in {
-    FileItem(itemId = "uuid/file.txt", owner = "someone",
-      dateAvailable = new DateTime("2016-12-15"),
-      accessibleTo = KNOWN,
-      visibleTo = KNOWN
-    ).availableFor(Some(User("somebody"))) should matchPattern {
-      case Failure(t: FileNotFoundException) if t.getMessage == "uuid/file.txt" =>
-    }
   }
 
   it should "announce availability after login" in {

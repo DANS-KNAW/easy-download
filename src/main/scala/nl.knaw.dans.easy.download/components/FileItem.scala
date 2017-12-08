@@ -42,8 +42,6 @@ case class FileItem(itemId: String,
 
   private def visibleTo(user: Option[User]): Try[Unit] = {
     if (isOwnerOrArchivist(user)) Success(())
-    else if (!itemId.matches("[^/]+/data/.*")) // "[^/]+" matches the uuid of the bag
-           Failure(new FileNotFoundException(itemId))
     else noEmbargo(visibleTo).flatMap(_ =>
       if (visibleTo == ANONYMOUS || (visibleTo == KNOWN && user.isDefined))
         Success(())

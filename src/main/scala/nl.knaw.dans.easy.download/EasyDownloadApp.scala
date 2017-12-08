@@ -32,6 +32,10 @@ trait EasyDownloadApp extends AutoCloseable
 
   def authenticate(authRequest: BasicAuthRequest): Try[Option[User]] = authentication.authenticate(authRequest)
 
+  /**
+   * @param bagId uuid of a bag
+   * @param path path of an item in files.xml of the bag
+   */
   def downloadFile(bagId: UUID,
                    path: Path,
                    user: Option[User],
