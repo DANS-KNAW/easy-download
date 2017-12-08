@@ -62,18 +62,6 @@ case class FileItemAuthInfo(itemId: String,
     }
   }
 
-  @deprecated
-  private def visibleTo(user: Option[User]): Try[Unit] = {
-    if (isOwnerOrArchivist(user)) Success(())
-    else if (!itemId.matches("[^/]+/data/.*"))// "[^/]+" matches the uuid of the bag
-      Failure(new FileNotFoundException(itemId))
-    else noEmbargo(visibleToValue).flatMap(_ =>
-      if (visibleToValue == ANONYMOUS || (visibleToValue == KNOWN && user.isDefined))
-        Success(())
-      else Failure(new FileNotFoundException(itemId))
-    )
-  }
-
   private def accessibleTo(user: AbstractUser): Try[Unit] = {
     user match {
       case ArchivistUser(_, _) | AdminUser(_, _) => Success(())
@@ -84,28 +72,5 @@ case class FileItemAuthInfo(itemId: String,
       case _ if accessibleToValue == KNOWN => Success(())
       case _ => Failure(NotAccessibleException(s"Download not allowed of: $itemId")) // might require group/permission
     }
-  }
-
-  @deprecated
-  private def accessibleTo(user: Option[User]): Try[Unit] = {
-    if (isOwnerOrArchivist(user)) Success(())
-    else noEmbargo(accessibleToValue).flatMap(_ =>
-      if (accessibleToValue == ANONYMOUS) Success(())
-      else if (accessibleToValue == KNOWN)
-             if (user.isDefined) Success(())
-             else Failure(NotAccessibleException(s"Please login to download: $itemId"))
-      else Failure(NotAccessibleException(s"Download not allowed of: $itemId")) // might require group/permission
-    )
-  }
-
-  @deprecated
-  private def isOwnerOrArchivist(user: Option[User]): Boolean = {
-    user.exists(user => user.isAdmin || user.isArchivist || user.id == owner)
-  }
-
-  @deprecated
-  def noEmbargo(rightsFor: RightsFor.Value): Try[Unit] = {
-    if (dateAvailableMillis <= DateTime.now.getMillis) Success(())
-    else Failure(NotAccessibleException(s"Download becomes available on $dateAvailable [$itemId]"))
   }
 }

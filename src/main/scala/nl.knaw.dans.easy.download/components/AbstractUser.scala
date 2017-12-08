@@ -15,31 +15,6 @@
  */
 package nl.knaw.dans.easy.download.components
 
-/*
- * a user can either be authenticated or not
- * currently you solve this by providing an Option
- * maybe it is more fitting to define various types of users instead
- * and use dynamic dispatch to define behavior for each type of user
- *
- * first classification:
- * sealed abstract class User
- * case class UnauthenticatedUser extends User
- * sealed abstract class AuthenticatedUser extends User // maybe merge this one with the next?
- * case class NormalAuthenticatedUser extends AuthenticatedUser
- * case class ArchivistUser extends AuthenticatedUser
- * case class AdminUser extends AuthenticatedUser
- */
-@deprecated
-case class User(id: String,
-                groups: Seq[String] = Seq.empty,
-                isArchivist: Boolean = false,
-                isAdmin: Boolean = false
-               ) {
-  override def toString: String = {
-    s"User: id=$id groups=$groups isArchivist=$isArchivist isAdmin=$isAdmin"
-  }
-}
-
 // TODO not sure what the `groups` is used for; for now I just kept it in and gave them all an empty Seq
 sealed abstract class AbstractUser(id: String, groups: Seq[String])
 case object UnauthenticatedUser extends AbstractUser("", Seq.empty)
