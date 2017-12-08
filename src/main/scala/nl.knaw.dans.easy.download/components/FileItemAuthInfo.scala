@@ -18,8 +18,6 @@ package nl.knaw.dans.easy.download.components
 import nl.knaw.dans.easy.download.components.RightsFor._
 import org.joda.time.DateTime
 
-import scala.util.Try
-
 case class FileItemAuthInfo(itemId: String,
                             owner: String,
                             dateAvailable: String,
@@ -32,17 +30,9 @@ case class FileItemAuthInfo(itemId: String,
   val visibleToValue = RightsFor.withName(visibleTo)
   val accessibleToValue = RightsFor.withName(accessibleTo)
 
-  @deprecated
-  def hasDownloadPermissionFor(user: AbstractUser): Try[Unit] = {
-    for {
-      _ <- user.canView(this)
-      _ <- user.canAccess(this)
-    } yield ()
-  }
-
   def isDataFile: Boolean = itemId.matches("[^/]+/data/.*") // "[^/]+" matches the uuid of the bag
   def hasEmbargo: Boolean = dateAvailableMillis > DateTime.now.getMillis
-  def isVisible(user: AbstractUser): Boolean = {
+  def isVisible(user: User): Boolean = {
     user match {
       case UnauthenticatedUser => visibleToValue == ANONYMOUS
       case _ => visibleToValue == ANONYMOUS || visibleToValue == KNOWN

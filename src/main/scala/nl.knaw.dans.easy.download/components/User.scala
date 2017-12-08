@@ -23,7 +23,7 @@ import nl.knaw.dans.easy.download.components.RightsFor._
 import scala.util.{ Failure, Success, Try }
 
 // TODO not sure what the `groups` is used for; for now I just kept it in and gave them all an empty Seq
-sealed abstract class AbstractUser(id: String, groups: Seq[String]) {
+sealed abstract class User(id: String, groups: Seq[String]) {
   def canView(fileItem: FileItemAuthInfo): Try[Unit]
 
   def canAccess(fileItem: FileItemAuthInfo): Try[Unit]
@@ -36,7 +36,7 @@ sealed abstract class AbstractUser(id: String, groups: Seq[String]) {
   }
 }
 
-case object UnauthenticatedUser extends AbstractUser("", Seq.empty) {
+case object UnauthenticatedUser extends User("", Seq.empty) {
   def canView(fileItem: FileItemAuthInfo): Try[Unit] = {
     if (!fileItem.isDataFile)
       Failure(new FileNotFoundException(fileItem.itemId))
@@ -60,7 +60,7 @@ case object UnauthenticatedUser extends AbstractUser("", Seq.empty) {
   }
 }
 
-case class AuthenticatedUser(id: String, groups: Seq[String] = Seq.empty) extends AbstractUser(id, groups) {
+case class AuthenticatedUser(id: String, groups: Seq[String] = Seq.empty) extends User(id, groups) {
   def canView(fileItem: FileItemAuthInfo): Try[Unit] = {
     if (id == fileItem.owner)
       Success(())
@@ -86,13 +86,13 @@ case class AuthenticatedUser(id: String, groups: Seq[String] = Seq.empty) extend
   }
 }
 
-case class ArchivistUser(id: String, groups: Seq[String] = Seq.empty) extends AbstractUser(id, groups) {
+case class ArchivistUser(id: String, groups: Seq[String] = Seq.empty) extends User(id, groups) {
   def canView(fileItem: FileItemAuthInfo): Try[Unit] = Success(())
 
   def canAccess(fileItem: FileItemAuthInfo): Try[Unit] = Success(())
 }
 
-case class AdminUser(id: String, groups: Seq[String] = Seq.empty) extends AbstractUser(id, groups) {
+case class AdminUser(id: String, groups: Seq[String] = Seq.empty) extends User(id, groups) {
   def canView(fileItem: FileItemAuthInfo): Try[Unit] = Success(())
 
   def canAccess(fileItem: FileItemAuthInfo): Try[Unit] = Success(())
