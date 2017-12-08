@@ -15,6 +15,20 @@
  */
 package nl.knaw.dans.easy.download.components
 
+/*
+ * a user can either be authenticated or not
+ * currently you solve this by providing an Option
+ * maybe it is more fitting to define various types of users instead
+ * and use dynamic dispatch to define behavior for each type of user
+ *
+ * first classification:
+ * sealed abstract class User
+ * case class UnauthenticatedUser extends User
+ * sealed abstract class AuthenticatedUser extends User // maybe merge this one with the next?
+ * case class NormalAuthenticatedUser extends AuthenticatedUser
+ * case class ArchivistUser extends AuthenticatedUser
+ * case class AdminUser extends AuthenticatedUser
+ */
 case class User(id: String,
                 groups: Seq[String] = Seq.empty,
                 isArchivist: Boolean = false,
