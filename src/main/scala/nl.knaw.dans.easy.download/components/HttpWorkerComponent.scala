@@ -34,7 +34,7 @@ trait HttpWorkerComponent {
         case (OK_200, _, is) => IOUtils.copyLarge(is, outputStreamProducer())
         case _ => // do nothing
       }
-      if (response.isSuccess) Success(())
+      if (response.code == OK_200) Success(())
       else failed(uri, response)
     }
 
