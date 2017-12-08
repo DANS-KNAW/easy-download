@@ -47,7 +47,7 @@ trait AuthenticationComponent extends DebugEnhancedLogging {
     private def getUser(userName: String, password: String): Try[User] = {
       logger.info(s"looking for user [$userName]")
 
-      // all these inner functions make the overall structure somewhat harder to read.
+      // TODO all these inner functions make the overall structure somewhat harder to read.
       // make private functions from them
       def toUser(searchResult: SearchResult): User = {
         def getAttrs(key: String): Seq[String] = {
@@ -67,8 +67,8 @@ trait AuthenticationComponent extends DebugEnhancedLogging {
           AuthenticatedUser(userName, groups)
       }
 
-      // I don't really understand what's going on here. Maybe add one or two lines of explanation?
-      // why do you return the `LdapContext` here, but then discard it in it's single use?
+      // TODO I don't really understand what's going on here. Maybe add one or two lines of explanation?
+      // TODO why do you return the `LdapContext` here, but then discard it in it's single use?
       def validPassword: Try[InitialLdapContext] = Try {
         val env = new util.Hashtable[String, String]() {
           put(Context.PROVIDER_URL, ldapProviderUrl)

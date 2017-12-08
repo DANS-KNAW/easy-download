@@ -26,7 +26,7 @@ import org.json4s.{ DefaultFormats, _ }
 
 import scala.util.{ Failure, Try }
 
-// 'Auth' stands for 'Authorization' I suppose? Maybe call it that.
+// TODO 'Auth' stands for 'Authorization' I suppose? Maybe call it that.
 // same for the `val authInfo: AuthInfo`. I would say call it `Authorization`/`AuthorizationComponent`.
 // that is more consistent with what you do in `Authentication`.
 // I am fine, however, with keeping `FileItemAuthInfo`, since the focus there is on the FileItem and
@@ -35,7 +35,7 @@ trait AuthInfoComponent extends DebugEnhancedLogging {
   this: HttpWorkerComponent =>
 
   val authInfo: AuthInfo
-  // put this private implicit val in the inner-trait
+  // TODO put this private implicit val in the inner-trait
   private implicit val jsonFormats: Formats = DefaultFormats
 
   trait AuthInfo {
@@ -48,7 +48,7 @@ trait AuthInfoComponent extends DebugEnhancedLogging {
         uri = baseUri.resolve(s"$bagId/$f")
         jsonString <- http.getHttpAsString(uri)
         authInfo <- Try(parse(jsonString).extract[FileItemAuthInfo]).recoverWith {
-          // would a custom exception be useful here? especially to match on in later uses?
+          // TODO would a custom exception be useful here? especially to match on in later uses?
           case t => Failure(new Exception(s"parse error [${ t.getMessage }] for: $jsonString", t))
         }
       } yield authInfo
