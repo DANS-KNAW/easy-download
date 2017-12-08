@@ -29,6 +29,10 @@ class EasyDownloadService(serverPort: Int, app: EasyDownloadApp) extends DebugEn
 
   import logger._
 
+  // TODO not sure, but it doesn't look like it is from the archetype.
+  // I'm working on a more standardized way for this to put into the dans-scala-lib, so if we keep
+  // it consistent, we can easily do a find/replace for this
+  // so, please revert this to its original, more unreadable way ;-)
   private val server = new Server(serverPort)
   private val context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS)
   context.addEventListener(new ScalatraListener() {

@@ -22,106 +22,133 @@ import nl.knaw.dans.easy.download.components.RightsFor._
 
 import scala.util.{ Failure, Success }
 
+// TODO rename to ~~FileItemAuthInfoSpec~~ UserSpec
 class FileItemSpec extends TestSupportFixture {
 
+  // TODO replace `shouldBe Success(())` with `shouldBe a[Success[_]]`, that's enough in this case
+
   "hasDownloadPermissionFor" should "allow archivist" in {
-    FileItemAuthInfo(itemId = "uuid/file.txt", owner = "someone",
+    val fileItem = FileItemAuthInfo(itemId = "uuid/file.txt", owner = "someone",
       dateAvailable = "4016-12-15",
       accessibleTo = RESTRICTED_REQUEST.toString,
       visibleTo = RESTRICTED_REQUEST.toString
-    ).hasDownloadPermissionFor(Some(User("archie", isArchivist = true))) shouldBe Success(())
+    )
+    val user = ArchivistUser("archie")
+    user.hasDownloadPermissionFor(fileItem) shouldBe Success(())
   }
 
+  // TODO what about admin? never tested, I also saw that in FileItemAuthInfo!
+
   it should "allow owner" in {
-    FileItemAuthInfo(itemId = "uuid/file.txt", owner = "someone",
+    val fileItem = FileItemAuthInfo(itemId = "uuid/file.txt", owner = "someone",
       dateAvailable = "4016-12-15",
       accessibleTo = RESTRICTED_REQUEST.toString,
       visibleTo = RESTRICTED_REQUEST.toString
-    ).hasDownloadPermissionFor(Some(User("someone"))) shouldBe Success(())
+    )
+    val user = KnownUser("someone")
+    user.hasDownloadPermissionFor(fileItem) shouldBe Success(())
   }
 
   it should "allow known" in {
-    FileItemAuthInfo(itemId = "uuid/data/file.txt", owner = "someone",
+    val fileItem = FileItemAuthInfo(itemId = "uuid/data/file.txt", owner = "someone",
       dateAvailable = "2016-12-15",
       accessibleTo = KNOWN.toString,
       visibleTo = KNOWN.toString
-    ).hasDownloadPermissionFor(Some(User("somebody"))) shouldBe Success(())
+    )
+    val user = KnownUser("somebody")
+    user.hasDownloadPermissionFor(fileItem) shouldBe Success(())
   }
 
   it should "reject metadata" in {
-    FileItemAuthInfo(itemId = "uuid/file.txt", owner = "someone",
+    val fileItem = FileItemAuthInfo(itemId = "uuid/file.txt", owner = "someone",
       dateAvailable = "2016-12-15",
       accessibleTo = KNOWN.toString,
       visibleTo = KNOWN.toString
-    ).hasDownloadPermissionFor(Some(User("somebody"))) should matchPattern {
+    )
+    val user = KnownUser("somebody")
+    user.hasDownloadPermissionFor(fileItem) should matchPattern {
       case Failure(t: FileNotFoundException) if t.getMessage == "uuid/file.txt" =>
     }
   }
 
   it should "allow metadata for owner" in {
-    FileItemAuthInfo(itemId = "uuid/file.txt", owner = "someone",
+    val fileItem = FileItemAuthInfo(itemId = "uuid/file.txt", owner = "someone",
       dateAvailable = "2016-12-15",
       accessibleTo = KNOWN.toString,
       visibleTo = KNOWN.toString
-    ).hasDownloadPermissionFor(Some(User("someone"))) shouldBe Success(())
+    )
+    val user = KnownUser("someone")
+    user.hasDownloadPermissionFor(fileItem) shouldBe Success(())
   }
 
   it should "refuse metadata for others" in {
-    FileItemAuthInfo(itemId = "uuid/file.txt", owner = "someone",
+    val fileItem = FileItemAuthInfo(itemId = "uuid/file.txt", owner = "someone",
       dateAvailable = "2016-12-15",
       accessibleTo = KNOWN.toString,
       visibleTo = KNOWN.toString
-    ).hasDownloadPermissionFor(Some(User("somebody"))) should matchPattern {
+    )
+    val user = KnownUser("somebody")
+    user.hasDownloadPermissionFor(fileItem) should matchPattern {
       case Failure(t: FileNotFoundException) if t.getMessage == "uuid/file.txt" =>
     }
   }
 
   it should "announce availability after login" in {
-    FileItemAuthInfo(itemId = "uuid/data/file.txt", owner = "someone",
+    val fileItem = FileItemAuthInfo(itemId = "uuid/data/file.txt", owner = "someone",
       dateAvailable = "2016-12-15",
       accessibleTo = KNOWN.toString,
       visibleTo = ANONYMOUS.toString
-    ).hasDownloadPermissionFor(None) should matchPattern {
+    )
+    val user = AnonymousUser
+    user.hasDownloadPermissionFor(fileItem) should matchPattern {
       case Failure(NotAccessibleException("Please login to download: uuid/data/file.txt")) =>
     }
   }
 
   it should "announce availability if under embargo" in {
-    FileItemAuthInfo(itemId = "uuid/data/file.txt", owner = "someone",
+    val fileItem = FileItemAuthInfo(itemId = "uuid/data/file.txt", owner = "someone",
       dateAvailable = "4016-12-15",
       accessibleTo = KNOWN.toString,
       visibleTo = KNOWN.toString
-    ).hasDownloadPermissionFor(Some(User("somebody"))) should matchPattern {
+    )
+    val user = KnownUser("somebody")
+    user.hasDownloadPermissionFor(fileItem) should matchPattern {
       case Failure(NotAccessibleException("Download becomes available on 4016-12-15 [uuid/data/file.txt]")) =>
     }
   }
 
   it should "refuse to user without group" in {
-    FileItemAuthInfo(itemId = "uuid/data/file.txt", owner = "someone",
+    val fileItem = FileItemAuthInfo(itemId = "uuid/data/file.txt", owner = "someone",
       dateAvailable = "2016-12-15",
       accessibleTo = RESTRICTED_GROUP.toString,
       visibleTo = ANONYMOUS.toString
-    ).hasDownloadPermissionFor(Some(User("somebody"))) should matchPattern {
+    )
+    val user = KnownUser("somebody")
+    user.hasDownloadPermissionFor(fileItem) should matchPattern {
       case Failure(NotAccessibleException("Download not allowed of: uuid/data/file.txt")) =>
     }
   }
 
   it should "invisible for user without group" in {
-    FileItemAuthInfo(itemId = "uuid/data/file.txt", owner = "someone",
+    val fileItem = FileItemAuthInfo(itemId = "uuid/data/file.txt", owner = "someone",
       dateAvailable = "2016-12-15",
       accessibleTo = RESTRICTED_GROUP.toString,
       visibleTo = RESTRICTED_GROUP.toString
-    ).hasDownloadPermissionFor(Some(User("somebody"))) should matchPattern {
+    )
+    val user = KnownUser("somebody")
+    user.hasDownloadPermissionFor(fileItem) should matchPattern {
       case Failure(t: FileNotFoundException) if t.getMessage == "uuid/data/file.txt" =>
     }
   }
 
   it should "announce availability if under embargo for group" in {
-    FileItemAuthInfo(itemId = "uuid/data/file.txt", owner = "someone",
+    val fileItem = FileItemAuthInfo(itemId = "uuid/data/file.txt", owner = "someone",
       dateAvailable = "4016-12-15",
       accessibleTo = RESTRICTED_GROUP.toString,
       visibleTo = RESTRICTED_GROUP.toString
-    ).hasDownloadPermissionFor(Some(User("somebody"))) should matchPattern {
+    )
+    val user = KnownUser("somebody")
+    user.hasDownloadPermissionFor(fileItem) should matchPattern {
       case Failure(NotAccessibleException("Download becomes available on 4016-12-15 [uuid/data/file.txt]")) =>
     }
   }

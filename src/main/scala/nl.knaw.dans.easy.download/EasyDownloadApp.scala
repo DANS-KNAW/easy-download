@@ -30,19 +30,21 @@ import scalaj.http.HttpResponse
 trait EasyDownloadApp extends AutoCloseable
   with DebugEnhancedLogging with ApplicationWiring {
 
-  def authenticate(authRequest: BasicAuthRequest): Try[Option[User]] = authentication.authenticate(authRequest)
+  def authenticate(authRequest: BasicAuthRequest): Try[User] = authentication.authenticate(authRequest)
 
-  def copyStream(bagId: UUID, path: Path, user: Option[User], outputStreamProducer: () => OutputStream): Try[Unit] = {
+  def copyStream(bagId: UUID, path: Path, user: User, outputStreamProducer: () => OutputStream): Try[Unit] = {
     for {
       fileItem <- authInfo.getFileItem(bagId, path)
-      _ <- fileItem.hasDownloadPermissionFor(user)
+      _ <- user.canView(fileItem)
+      _ <- user.canAccess(fileItem)
       _ <- bagStore.copyStream(bagId, path)(outputStreamProducer).recoverWith {
-        case HttpStatusException(message, HttpResponse(_, NOT_FOUND_404, _)) =>
+        case HttpStatusException(_, HttpResponse(_, NOT_FOUND_404, _)) =>
           Failure(new Exception(s"invalid bag, file downloadable but not found: $path"))
       }
     } yield ()
   }
 
+  // TODO if you don't need these `init` and `close`, remove them!
   def init(): Try[Unit] = {
     // Do any initialization of the application here. Typical examples are opening
     // databases or connecting to other services.
