@@ -55,6 +55,5 @@ class EasyDownloadService(serverPort: Int, app: EasyDownloadApp) extends DebugEn
 
   def destroy(): Try[Unit] = Try {
     server.destroy()
-    app.close()
   }
 }

@@ -19,7 +19,6 @@ import java.nio.file.Paths
 
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import resource._
 
 import scala.language.reflectiveCalls
 import scala.util.control.NonFatal
@@ -34,13 +33,7 @@ object Command extends App with DebugEnhancedLogging {
   }
   val app = EasyDownloadApp(configuration)
 
-  managed(app)
-    .acquireAndGet(app => {
-      for {
-        _ <- app.init()
-        msg <- runSubcommand(app)
-      } yield msg
-    })
+  runSubcommand(app)
     .doIfSuccess(msg => println(s"OK: $msg"))
     .doIfFailure { case e => logger.error(e.getMessage, e) }
     .doIfFailure { case NonFatal(e) => println(s"FAILED: ${ e.getMessage }") }

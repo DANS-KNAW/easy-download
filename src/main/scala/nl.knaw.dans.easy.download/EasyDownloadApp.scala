@@ -27,8 +27,7 @@ import org.scalatra.auth.strategy.BasicAuthStrategy.BasicAuthRequest
 import scala.util.{ Failure, Success, Try }
 import scalaj.http.HttpResponse
 
-trait EasyDownloadApp extends AutoCloseable
-  with DebugEnhancedLogging with ApplicationWiring {
+trait EasyDownloadApp extends DebugEnhancedLogging with ApplicationWiring {
 
   def authenticate(authRequest: BasicAuthRequest): Try[Option[User]] = authentication.authenticate(authRequest)
 
@@ -49,16 +48,6 @@ trait EasyDownloadApp extends AutoCloseable
           Failure(new Exception(s"invalid bag, file downloadable but not found: $path"))
       }
     } yield ()
-  }
-
-  def init(): Try[Unit] = {
-    // Do any initialization of the application here. Typical examples are opening
-    // databases or connecting to other services.
-    Success(())
-  }
-
-  override def close(): Unit = {
-
   }
 }
 
