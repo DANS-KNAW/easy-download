@@ -40,7 +40,7 @@ case class FileItem(itemId: String,
   def availableFor(user: Option[User]): Try[Unit] = {
     if (hasPower(user)) Success(())
     else if (!visibleTo(user)) Failure(new FileNotFoundException(itemId))
-    else if (isUnderEmbargo) underEmbargo
+    else if (dateAvailable.isAfterNow) embagroFailure
     else if (accessibleTo == ANONYMOUS) Success(())
     else if (accessibleTo == KNOWN)
            if (user.isDefined) Success(())
@@ -56,11 +56,7 @@ case class FileItem(itemId: String,
     visibleTo == ANONYMOUS || (visibleTo == KNOWN && user.isDefined)
   }
 
-  private def isUnderEmbargo = {
-    dateAvailable.isAfterNow
-  }
-
-  private def underEmbargo = {
+  private def embagroFailure = {
     val date = DateTimeFormat.forPattern("yyyy-MM-dd").print(dateAvailable)
     Failure(NotAccessibleException(s"Download becomes available on $date [$itemId]"))
   }
@@ -70,7 +66,7 @@ object FileItem {
 
   private implicit val jsonFormats: Formats = DefaultFormats
 
-  private case class IntermediateFileItem(// TODO replace class with typeHints for DefaultFormats?
+  private case class IntermediateFileItem(// seems easier than typeHints for DefaultFormats
                                           itemId: String,
                                           owner: String,
                                           dateAvailable: String,
@@ -88,8 +84,11 @@ object FileItem {
       new DateTime(fileItem.dateAvailable),
       RightsFor.withName(fileItem.accessibleTo),
       RightsFor.withName(fileItem.visibleTo)
-    )).recoverWith { case t: NoSuchElementException =>
-      Failure(new Exception(s"parse error [${ t.getMessage }] for: $input"))
+    )).recoverWith {
+      case t: NoSuchElementException =>
+        Failure(new Exception(s"Parse error [${ t.getMessage }] for: $input"))
+      case t: IllegalArgumentException =>
+        Failure(new Exception(s"Parse error, invalid date [${ t.getMessage }] for: $input"))
     }
   }
 }

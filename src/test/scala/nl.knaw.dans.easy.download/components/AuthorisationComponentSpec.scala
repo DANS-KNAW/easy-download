@@ -67,27 +67,4 @@ class AuthorisationComponentSpec extends TestSupportFixture with MockFactory {
           |Did not find value which can be converted into java.lang.String] for: {"nonsense":"value"}""".stripMargin
     }
   }
-
-  it should "stumble over invalid accessibleTo" in {
-    val path = Paths.get("some.file")
-    expectAutInfoRequest(path) returning Success(
-      s"""{
-         |  "itemId":"$uuid/some.file",
-         |  "owner":"someone",
-         |  "dateAvailable":"1992-07-30",
-         |  "accessibleTo":"invalidValue",
-         |  "visibleTo":"ANONYMOUS"
-         |}""".stripMargin
-    )
-    inside(wiring.authorisation.getFileItem(uuid, path)) {
-      case Failure(t) => t.getMessage shouldBe
-        s"""parse error [No value found for 'invalidValue'] for: {
-           |  "itemId":"$uuid/some.file",
-           |  "owner":"someone",
-           |  "dateAvailable":"1992-07-30",
-           |  "accessibleTo":"invalidValue",
-           |  "visibleTo":"ANONYMOUS"
-           |}""".stripMargin
-    }
-  }
 }

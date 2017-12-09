@@ -16,6 +16,7 @@
 package nl.knaw.dans.easy.download.components
 
 import java.io.FileNotFoundException
+import java.util.UUID
 
 import nl.knaw.dans.easy.download.components.RightsFor._
 import nl.knaw.dans.easy.download.{ NotAccessibleException, TestSupportFixture }
@@ -104,6 +105,38 @@ class FileItemSpec extends TestSupportFixture {
       visibleTo = ANONYMOUS
     ).availableFor(Some(User("somebody"))) should matchPattern {
       case Failure(NotAccessibleException("Download becomes available on 4016-12-15 [uuid/data/file.txt]")) =>
+    }
+  }
+
+  private val uuid = UUID.randomUUID()
+
+  "fromJson" should "stumble over invalid accessibleTo" in {
+    val input =
+      s"""{
+         |  "itemId":"$uuid/some.file",
+         |  "owner":"someone",
+         |  "dateAvailable":"1992-07-30",
+         |  "accessibleTo":"invalidValue",
+         |  "visibleTo":"ANONYMOUS"
+         |}""".stripMargin
+    inside(FileItem.fromJson(input)) {
+      case Failure(t) => t.getMessage shouldBe
+        s"""Parse error [No value found for 'invalidValue'] for: $input"""
+    }
+  }
+
+  it should "stumble over invalid date" in {
+    val input =
+      s"""{
+         |  "itemId":"$uuid/some.file",
+         |  "owner":"someone",
+         |  "dateAvailable":"today",
+         |  "accessibleTo":"KNOWN",
+         |  "visibleTo":"ANONYMOUS"
+         |}""".stripMargin
+    inside(FileItem.fromJson(input)) {
+      case Failure(t) => t.getMessage shouldBe
+        s"""Parse error, invalid date [Invalid format: "today" is malformed at "oday"] for: $input"""
     }
   }
 }
