@@ -19,6 +19,7 @@ import java.net.URI
 import java.nio.file.{ Path, Paths }
 import java.util.UUID
 
+import com.typesafe.scalalogging.Logger
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.eclipse.jetty.http.HttpStatus._
 import org.scalamock.scalatest.MockFactory
@@ -26,6 +27,7 @@ import org.scalatra.auth.strategy.BasicAuthStrategy.BasicAuthRequest
 import org.scalatra.test.scalatest.ScalatraSuite
 
 import scala.util.Success
+import org.slf4j.{Logger => Underlying}
 
 class ServletSpec extends TestSupportFixture with ServletFixture
   with ScalatraSuite
@@ -39,13 +41,17 @@ class ServletSpec extends TestSupportFixture with ServletFixture
     override val http: HttpWorker = mock[HttpWorker]
     override val authentication: Authentication = mock[Authentication]
     override lazy val configuration: Configuration = new Configuration("", new PropertiesConfiguration() {
-      setDelimiterParsingDisabled(true)
       addProperty("bag-store.url", "http://localhost:20110/")
       addProperty("auth-info.url", "http://localhost:20170/")
       addProperty("ark.name-assigning-authority-number", naan)
     })
   }
-  addServlet(new EasyDownloadServlet(app), "/*")
+  private val mockedLogger = mock[Underlying]
+  (mockedLogger.isInfoEnabled ()) expects () returning true
+
+  addServlet(new EasyDownloadServlet(app){
+    override lazy val logger: Logger = Logger(mockedLogger)
+  }, "/*")
 
   private def expectDownloadStream(path: Path) = {
     (app.http.copyHttpStream(_: URI)) expects new URI(s"http://localhost:20110/bags/$uuid/$path") once()
