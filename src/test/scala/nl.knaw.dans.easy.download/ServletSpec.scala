@@ -47,7 +47,8 @@ class ServletSpec extends TestSupportFixture with ServletFixture
     })
   }
   private val mockedLogger = mock[Underlying]
-  (mockedLogger.isInfoEnabled ()) expects () returning true
+  (mockedLogger.isInfoEnabled: () => Boolean) expects() anyNumberOfTimes() returning true
+  (mockedLogger.info(_ : String)) expects "File Download Servlet running..."
 
   addServlet(new EasyDownloadServlet(app){
     override lazy val logger: Logger = Logger(mockedLogger)
@@ -97,16 +98,17 @@ class ServletSpec extends TestSupportFixture with ServletFixture
 
   it should "report invalid authorisation results" in {
     val path = Paths.get("some.file")
-    expectAuthorisation(path) returning Success(
-      s"""{
-         |  "itemId":"$uuid/some.file",
-         |  "owner":"someone",
-         |  "dateAvailable":"1992-07-30",
-         |  "accessibleTo":"invaidValue",
-         |  "visibleTo":"ANONYMOUS"
-         |}""".stripMargin
-    )
+    val expectedHttpResponse = s"""{
+       |  "itemId":"$uuid/$path",
+       |  "owner":"someone",
+       |  "dateAvailable":"1992-07-30",
+       |  "accessibleTo":"invalidValue",
+       |  "visibleTo":"ANONYMOUS"
+       |}""".stripMargin
+    expectAuthorisation(path) returning Success(expectedHttpResponse)
     expectAuthentication() returning Success(None)
+    (mockedLogger.isErrorEnabled: () => Boolean) expects() anyNumberOfTimes() returning true
+    (mockedLogger.error(_ : String, _: Throwable)) expects (s"Parse error [No value found for 'invalidValue'] for: $expectedHttpResponse",*)
     get(s"ark:/$naan/$uuid/some.file") {
       // logged message shown in AuthorisationSpec
       body shouldBe s"not expected exception"
