@@ -20,7 +20,7 @@ import java.nio.file.Paths
 import java.util.UUID
 
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import org.eclipse.jetty.http.HttpStatus.{ NOT_FOUND_404, REQUEST_TIMEOUT_408, SERVICE_UNAVAILABLE_503 }
+import org.eclipse.jetty.http.HttpStatus._
 import org.scalatra._
 import org.scalatra.auth.strategy.BasicAuthStrategy.BasicAuthRequest
 
@@ -38,17 +38,23 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with Deb
   }
 
   get(s"/ark:/$naan/:uuid/*") {
-    (getUUID, getPath, getUser) match {
-      case (Success(uuid), Success(Some(path)), Success(user)) => respond(s"$uuid/$path", app.downloadFile(uuid, path, user, () => response.outputStream))
-      case (Success(_), Success(None), _) => BadRequest("file path is empty")
-      case (_, _, Failure(InvalidUserPasswordException(_, _))) => Unauthorized()
-      case (_, _, Failure(AuthenticationNotAvailableException(_))) => ServiceUnavailable("Authentication service not available, try anonymous download")
-      case (_, _, Failure(AuthenticationTypeNotSupportedException(_))) => BadRequest("Only anonymous download or basic authentication supported")
-      case (Failure(t), _, _) => BadRequest(t.getMessage) // invalid uuid
-      case (_, Failure(t), _) => BadRequest(t.getMessage) // invalid path
+    logger.info(s"file download request: $params")
+    val tuple = (getUUID, getPath, getUser)
+    tuple match {
+      case (Success(uuid), Success(Some(path)), Success(user)) =>
+        respond(s"$uuid/$path", app.downloadFile(uuid, path, user, () => response.outputStream))
       case _ =>
-        logger.error(s"not expected request: $params")
-        InternalServerError("not expected exception")
+        val response = tuple match {
+          case (Success(_), Success(None), _) => BadRequest("file path is empty")
+          case (_, _, Failure(InvalidUserPasswordException(_, _))) => Unauthorized()
+          case (_, _, Failure(AuthenticationNotAvailableException(_))) => ServiceUnavailable("Authentication service not available, try anonymous download")
+          case (_, _, Failure(AuthenticationTypeNotSupportedException(_))) => BadRequest("Only anonymous download or basic authentication supported")
+          case (Failure(t), _, _) => BadRequest(t.getMessage)
+          case (_, Failure(t), _) => BadRequest(t.getMessage)
+          case _ => InternalServerError("not expected exception")
+        }
+        logger.info(s"returned ${response.status.line} for $params")
+        response
     }
   }
 
@@ -65,7 +71,7 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with Deb
   }
 
   private def respond(path: String, copyResult: Try[Unit]) = {
-    copyResult match {
+    val response = copyResult match {
       case Success(()) => Ok()
       case Failure(HttpStatusException(message, HttpResponse(_, SERVICE_UNAVAILABLE_503, _))) => ServiceUnavailable(message)
       case Failure(HttpStatusException(message, HttpResponse(_, REQUEST_TIMEOUT_408, _))) => RequestTimeout(message)
@@ -73,8 +79,10 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with Deb
       case Failure(NotAccessibleException(message)) => Forbidden(message)
       case Failure(_: FileNotFoundException) => NotFound(s"not found: $path") // in fact: not visible
       case Failure(t) =>
-        logger.error(t.getMessage, t)
+        logger.error("Internal server error", t)
         InternalServerError("not expected exception")
     }
+    logger.info(s"returned ${response.status.line} for $path")
+    response
   }
 }
