@@ -42,13 +42,13 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with Deb
     val result = (getUUID, getPath, getUser) match {
       case (Success(uuid), Success(Some(path)), Success(user)) => respond(s"$uuid/$path", app.downloadFile(uuid, path, user, () => response.outputStream))
       case (Success(_), Success(None), _) => BadRequest("file path is empty")
+      case (Failure(t), _, _) => BadRequest(t.getMessage) // invalid uuid
+      case (_, Failure(t), _) => BadRequest(t.getMessage) // invalid path
       case (_, _, Failure(InvalidUserPasswordException(_, _))) => Unauthorized()
       case (_, _, Failure(AuthenticationNotAvailableException(_))) => ServiceUnavailable("Authentication service not available, try anonymous download")
       case (_, _, Failure(AuthenticationTypeNotSupportedException(_))) => BadRequest("Only anonymous download or basic authentication supported")
-      case (Failure(t), _, _) => BadRequest(t.getMessage) // invalid uuid
-      case (_, Failure(t), _) => BadRequest(t.getMessage) // invalid path
-      case _ =>
-        logger.error(s"not expected request: $params")
+      case (_, _, Failure(t)) =>
+        logger.error(s"not expected exception", t)
         InternalServerError("not expected exception")
     }
     logger.info(s"returned ${response.status.line} for $params")
