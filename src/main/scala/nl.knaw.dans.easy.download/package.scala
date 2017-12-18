@@ -39,16 +39,16 @@ package object download extends DebugEnhancedLogging {
 
   case class InvalidUserPasswordException(userName: String, cause: Throwable)
     extends Exception(s"invalid credentials for $userName") {
-    logger.info(s"invalid credentials for $userName: ${ cause.getMessage }", cause)
+    logger.info(s"invalid credentials for $userName: ${ cause.getMessage }")
   }
 
   case class AuthenticationNotAvailableException(cause: Throwable)
     extends Exception(cause.getMessage, cause) {
-    logger.info(cause.getLocalizedMessage, cause)
+    logger.info(cause.getLocalizedMessage)
   }
   case class AuthenticationTypeNotSupportedException(cause: Throwable)
     extends Exception(cause.getMessage, cause) {
-    logger.info(cause.getLocalizedMessage, cause)
+    logger.info(cause.getLocalizedMessage)
   }
 
   def escapePath(path: Path): String = {
