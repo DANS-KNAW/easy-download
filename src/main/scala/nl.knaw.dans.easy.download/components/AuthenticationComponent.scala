@@ -16,9 +16,10 @@
 package nl.knaw.dans.easy.download.components
 
 import java.util
-import javax.naming.Context
+import javax.naming.{ AuthenticationException, Context }
+import javax.naming.directory.SearchControls.SUBTREE_SCOPE
 import javax.naming.directory.{ Attribute, SearchControls, SearchResult }
-import javax.naming.ldap.{ InitialLdapContext, LdapContext }
+import javax.naming.ldap.InitialLdapContext
 
 import nl.knaw.dans.easy.download.{ AuthenticationTypeNotSupportedException, InvalidUserPasswordException }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
@@ -50,46 +51,49 @@ trait AuthenticationComponent extends DebugEnhancedLogging {
 
       logger.info(s"looking for user [$userName]")
 
-      def findUserWithItsOwnCredentials = {
-        managed(
-          new InitialLdapContext(
-            new util.Hashtable[String, String]() {
-              put(Context.PROVIDER_URL, ldapProviderUrl)
-              put(Context.SECURITY_AUTHENTICATION, "simple")
-              put(Context.SECURITY_PRINCIPAL, s"uid=$userName, $ldapUsersEntry")
-              put(Context.SECURITY_CREDENTIALS, password)
-              put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory")
-            },
-            null
-          )
-        ).map(_.search(
-          ldapUsersEntry,
-          s"(&(objectClass=easyUser)(uid=$userName))",
-          new SearchControls() {setSearchScope(SearchControls.SUBTREE_SCOPE) }
-        )).tried
+      val query = s"(&(objectClass=easyUser)(uid=$userName))"
+      val connectionProperties = new util.Hashtable[String, String]() {
+        put(Context.PROVIDER_URL, ldapProviderUrl)
+        put(Context.SECURITY_AUTHENTICATION, "simple")
+        put(Context.SECURITY_PRINCIPAL, s"uid=$userName, $ldapUsersEntry")
+        put(Context.SECURITY_CREDENTIALS, password)
+        put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory")
       }
 
-      def toTuples(a: Attribute) = {
-        (a.getID, a.getAll.asScala.toArray.map(_.toString).toSeq)
+      def search = {
+        val searchControls = new SearchControls() {
+          setSearchScope(SUBTREE_SCOPE)
+        }
+        managed(new InitialLdapContext(connectionProperties, null))
+          .map(_.search(ldapUsersEntry, query, searchControls))
+          .tried
+      }.recoverWith {
+        case t: AuthenticationException => Failure(InvalidUserPasswordException(userName, new Exception("invalid password", t)))
+        case t => Failure(t)
       }
 
-      def oneAndOnlyUser(list: List[SearchResult]) = {
-        if (list.isEmpty)
-          Failure(InvalidUserPasswordException(userName, new Exception("not found")))
-        else Success(list.head)
+      def getFirst(list: List[SearchResult]): Try[SearchResult] = {
+        list
+          .headOption
+          .map(Success(_))
+          .getOrElse(Failure(InvalidUserPasswordException(userName, new Exception(s"User [$userName] not found"))))
       }
 
-      def userIsActive(map: Map[String, Seq[String]]) = {
+      def toTuples(a: Attribute): (String, Seq[String]) = {
+        (a.getID, a.getAll.asScala.map(_.toString).toSeq)
+      }
+
+      def userIsActive(map: Map[String, Seq[String]]): Try[Unit] = {
         val values = map.getOrElse("dansState", Seq.empty)
         logger.info(s"state of $userName: $values")
         if (values.contains("ACTIVE")) Success(())
-        else Failure(InvalidUserPasswordException(userName, new Exception("not active")))
+        else Failure(InvalidUserPasswordException(userName, new Exception(s"User [$userName] found but not active")))
       }
 
       for {
-        searchResult <- findUserWithItsOwnCredentials
-        first <- oneAndOnlyUser(searchResult.asScala.toList)
-        userAttributes = first.getAttributes.getAll.asScala.toArray.map(toTuples).toMap
+        searchResults <- search // returns zero or one
+        searchResult <- getFirst(searchResults.asScala.toList)
+        userAttributes = searchResult.getAttributes.getAll.asScala.map(toTuples).toMap
         _ <- userIsActive(userAttributes)
         roles = userAttributes.getOrElse("easyRoles", Seq.empty)
       } yield User(userName,
