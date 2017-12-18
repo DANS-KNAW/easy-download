@@ -20,7 +20,7 @@ import java.nio.file.Paths
 import java.util.UUID
 
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import org.eclipse.jetty.http.HttpStatus.{ NOT_FOUND_404, REQUEST_TIMEOUT_408, SERVICE_UNAVAILABLE_503 }
+import org.eclipse.jetty.http.HttpStatus._
 import org.scalatra._
 import org.scalatra.auth.strategy.BasicAuthStrategy.BasicAuthRequest
 
@@ -38,7 +38,8 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with Deb
   }
 
   get(s"/ark:/$naan/:uuid/*") {
-    (getUUID, getPath, getUser) match {
+    logger.info(s"file download request: $params")
+    val result = (getUUID, getPath, getUser) match {
       case (Success(uuid), Success(Some(path)), Success(user)) => respond(s"$uuid/$path", app.downloadFile(uuid, path, user, () => response.outputStream))
       case (Success(_), Success(None), _) => BadRequest("file path is empty")
       case (_, _, Failure(InvalidUserPasswordException(_, _))) => Unauthorized()
@@ -50,6 +51,8 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with Deb
         logger.error(s"not expected request: $params")
         InternalServerError("not expected exception")
     }
+    logger.info(s"returned ${response.status.line} for $params")
+    result
   }
 
   private def getUser = {
