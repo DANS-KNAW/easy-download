@@ -24,7 +24,6 @@ import org.eclipse.jetty.http.HttpStatus._
 import org.scalamock.scalatest.MockFactory
 import org.scalatra.auth.strategy.BasicAuthStrategy.BasicAuthRequest
 import org.scalatra.test.scalatest.ScalatraSuite
-import org.slf4j.{ Logger => Underlying }
 
 import scala.util.Success
 
