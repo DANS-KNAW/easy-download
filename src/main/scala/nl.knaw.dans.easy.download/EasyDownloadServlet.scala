@@ -38,8 +38,11 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with Deb
   }
 
   get(s"/ark:/$naan/:uuid/*") {
-    logger.info(s"file download request: $params")
-    val result = (getUUID, getPath, getUser) match {
+    new BasicAuthRequest(request)
+    val authRequest = new BasicAuthRequest(request)
+    val userName = { Option(authRequest.username).getOrElse("ANONYMOUS") }
+    logger.info(s"file download requested by $userName for $params")
+    val result = (getUUID, getPath, app.authenticate(authRequest)) match {
       case (Success(uuid), Success(Some(path)), Success(user)) => respond(s"$uuid/$path", app.downloadFile(uuid, path, user, () => response.outputStream))
       case (Success(_), Success(None), _) => BadRequest("file path is empty")
       case (Failure(t), _, _) => BadRequest(t.getMessage) // invalid uuid
@@ -51,12 +54,8 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with Deb
         logger.error(s"not expected exception", t)
         InternalServerError("not expected exception")
     }
-    logger.info(s"returned ${response.status.line} for $params")
+    logger.info(s"returned ${response.status.line} to $userName for $params")
     result
-  }
-
-  private def getUser = {
-    app.authenticate(new BasicAuthRequest(request))
   }
 
   private def getUUID = Try {

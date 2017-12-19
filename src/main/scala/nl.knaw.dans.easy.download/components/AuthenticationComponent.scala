@@ -48,7 +48,7 @@ trait AuthenticationComponent extends DebugEnhancedLogging {
     private def getUser(userName: String, password: String): Try[User] = {
       // inner functions reuse the arguments
 
-      logger.info(s"looking for user [$userName]")
+      logger.debug(s"looking for user [$userName]")
 
       def toUser(searchResult: SearchResult) = {
         def getAttrs(key: String): Seq[String] = {
