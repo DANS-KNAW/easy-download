@@ -40,7 +40,7 @@ trait AuthorisationComponent extends DebugEnhancedLogging {
         f <- Try(escapePath(path))
         uri = baseUri.resolve(s"$bagId/$f")
         jsonString <- http.getHttpAsString(uri)
-        _ = logger.info(s"$bagId/$path $jsonString")
+        _ = logger.debug(s"auth-info: ${ jsonString.split("\n").map(_.trim).mkString(" ") }")
         fileItem <- FileItem.fromJson(jsonString)
       } yield fileItem
     }
