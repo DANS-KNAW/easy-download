@@ -38,10 +38,10 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with Deb
   }
 
   get(s"/ark:/$naan/:uuid/*") {
-    new BasicAuthRequest(request)
     val authRequest = new BasicAuthRequest(request)
     val userName = { Option(authRequest.username).getOrElse("ANONYMOUS") }
     logger.info(s"file download requested by $userName for $params")
+
     val result = (getUUID, getPath, app.authenticate(authRequest)) match {
       case (Success(uuid), Success(Some(path)), Success(user)) => respond(s"$uuid/$path", app.downloadFile(uuid, path, user, () => response.outputStream))
       case (Success(_), Success(None), _) => BadRequest("file path is empty")

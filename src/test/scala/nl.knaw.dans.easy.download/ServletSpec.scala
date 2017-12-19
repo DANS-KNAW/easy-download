@@ -152,15 +152,6 @@ class ServletSpec extends TestSupportFixture with ServletFixture
     }
   }
 
-  it should "report invalid path (can't test with scalatra)" ignore {
-    // Scalatra throws IllegalArgumentException on URI before calling EasyDownloadServlet.get
-    // this way we can't test exceptions thrown by Paths.get in EasyDownloadServlet.getPath
-    get(s"ark:/$naan/$uuid/s\0me.file") {
-      body shouldBe "Illegal character in path at index 73: http://localhost:50327/ark:/123456/3b6694ec-fb4c-4a49-9a37-8976616a45dc/s\0me.file"
-      status shouldBe BAD_REQUEST_400
-    }
-  }
-
   it should "report missing path" in {
     expectAuthentication() returning Success(None)
     get(s"ark:/$naan/$uuid/") {
