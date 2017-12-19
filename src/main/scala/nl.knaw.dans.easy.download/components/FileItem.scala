@@ -38,8 +38,8 @@ case class FileItem(itemId: String,
                     visibleTo: RightsFor.Value
                    ) {
   def availableFor(user: Option[User]): Try[Unit] = {
-    if (hasPower(user)) Success(())
-    else if (!visibleTo(user)) Failure(new FileNotFoundException(itemId))
+    if (isOwnedBy(user)) Success(())
+    else if (!isVisibleTo(user)) Failure(new FileNotFoundException(itemId))
     else if (dateAvailable.isAfterNow) embagroFailure
     else if (accessibleTo == ANONYMOUS) Success(())
     else if (accessibleTo == KNOWN)
@@ -48,11 +48,11 @@ case class FileItem(itemId: String,
     else Failure(NotAccessibleException(s"Download not allowed of: $itemId")) // might require group/permission
   }
 
-  private def hasPower(user: Option[User]): Boolean = {
-    user.exists(user => user.isAdmin || user.isArchivist || user.id == owner)
+  private def isOwnedBy(user: Option[User]): Boolean = {
+    user.exists(_.id == owner)
   }
 
-  private def visibleTo(user: Option[User]): Boolean = {
+  private def isVisibleTo(user: Option[User]): Boolean = {
     visibleTo == ANONYMOUS || (visibleTo == KNOWN && user.isDefined)
   }
 

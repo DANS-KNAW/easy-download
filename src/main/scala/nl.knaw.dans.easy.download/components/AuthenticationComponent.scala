@@ -95,12 +95,7 @@ trait AuthenticationComponent extends DebugEnhancedLogging {
         searchResult <- getFirst(searchResults.asScala.toList)
         userAttributes = searchResult.getAttributes.getAll.asScala.map(toTuples).toMap
         _ <- userIsActive(userAttributes)
-        roles = userAttributes.getOrElse("easyRoles", Seq.empty)
-      } yield User(userName,
-        isArchivist = roles.contains("ARCHIVIST"),
-        isAdmin = roles.contains("ADMIN"),
-        groups = userAttributes.getOrElse("easyGroups", Seq.empty)
-      )
+      } yield User(userName, userAttributes.getOrElse("easyGroups", Seq.empty))
     }
   }
 }

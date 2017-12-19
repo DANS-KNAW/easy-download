@@ -15,12 +15,8 @@
  */
 package nl.knaw.dans.easy.download.components
 
-case class User(id: String,
-                groups: Seq[String] = Seq.empty,
-                isArchivist: Boolean = false,
-                isAdmin: Boolean = false
-               ) {
+case class User(id: String, groups: Seq[String] = Seq.empty) {
   override def toString: String = {
-    s"User: id=$id groups=$groups isArchivist=$isArchivist isAdmin=$isAdmin"
+    s"User: id=$id groups=$groups"
   }
 }

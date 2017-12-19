@@ -26,15 +26,7 @@ import scala.util.{ Failure, Success }
 
 class FileItemSpec extends TestSupportFixture {
 
-  "hasDownloadPermissionFor" should "allow archivist" in {
-    FileItem(itemId = "uuid/file.txt", owner = "someone",
-      dateAvailable = new DateTime("4016-12-15"),
-      accessibleTo = RESTRICTED_REQUEST,
-      visibleTo = RESTRICTED_REQUEST
-    ).availableFor(Some(User("archie", isArchivist = true))) shouldBe Success(())
-  }
-
-  it should "allow owner" in {
+  "hasDownloadPermissionFor" should "allow owner" in {
     FileItem(itemId = "uuid/file.txt", owner = "someone",
       dateAvailable = new DateTime("4016-12-15"),
       accessibleTo = RESTRICTED_REQUEST,
