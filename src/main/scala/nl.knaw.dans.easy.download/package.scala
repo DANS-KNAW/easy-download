@@ -44,11 +44,11 @@ package object download extends DebugEnhancedLogging {
 
   case class AuthenticationNotAvailableException(cause: Throwable)
     extends Exception(cause.getMessage, cause) {
-    logger.info(cause.getLocalizedMessage)
+    logger.info(cause.getMessage)
   }
   case class AuthenticationTypeNotSupportedException(cause: Throwable)
     extends Exception(cause.getMessage, cause) {
-    logger.info(cause.getLocalizedMessage)
+    logger.info(cause.getMessage)
   }
 
   def escapePath(path: Path): String = {
