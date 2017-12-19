@@ -21,7 +21,7 @@ import javax.naming.directory.SearchControls.SUBTREE_SCOPE
 import javax.naming.directory.{ Attribute, SearchControls, SearchResult }
 import javax.naming.ldap.InitialLdapContext
 
-import nl.knaw.dans.easy.download.{ AuthenticationTypeNotSupportedException, InvalidUserPasswordException }
+import nl.knaw.dans.easy.download.{ AuthenticationNotAvailableException, AuthenticationTypeNotSupportedException, InvalidUserPasswordException }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.scalatra.auth.strategy.BasicAuthStrategy.BasicAuthRequest
 import resource.managed
@@ -69,7 +69,7 @@ trait AuthenticationComponent extends DebugEnhancedLogging {
           .tried
       }.recoverWith {
         case t: AuthenticationException => Failure(InvalidUserPasswordException(userName, new Exception("invalid password", t)))
-        case t => Failure(t)
+        case t => Failure(AuthenticationNotAvailableException(t))
       }
 
       def getFirst(list: List[SearchResult]): Try[SearchResult] = {
