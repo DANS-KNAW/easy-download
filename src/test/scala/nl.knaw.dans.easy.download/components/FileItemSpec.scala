@@ -113,7 +113,9 @@ class FileItemSpec extends TestSupportFixture {
          |}""".stripMargin
     inside(FileItem.fromJson(input)) {
       case Failure(t) => t.getMessage shouldBe
-        s"""Parse error [No value found for 'invalidValue'] for: $input"""
+        s"""parse error [class org.json4s.package$$MappingException: No usable value for accessibleTo
+           |No usable value for $$outer
+           |Can't find ScalaSig for class java.lang.Object] for: $input""".stripMargin
     }
   }
 
@@ -128,7 +130,14 @@ class FileItemSpec extends TestSupportFixture {
          |}""".stripMargin
     inside(FileItem.fromJson(input)) {
       case Failure(t) => t.getMessage shouldBe
-        s"""Parse error, invalid date [Invalid format: "today" is malformed at "oday"] for: $input"""
+        s"""parse error [class org.json4s.package$$MappingException: No usable value for dateAvailable
+           |Invalid date format today] for: {
+           |  "itemId":"$uuid/some.file",
+           |  "owner":"someone",
+           |  "dateAvailable":"today",
+           |  "accessibleTo":"KNOWN",
+           |  "visibleTo":"ANONYMOUS"
+           |}""".stripMargin
     }
   }
 }

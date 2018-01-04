@@ -36,13 +36,13 @@ class AuthorisationComponentSpec extends TestSupportFixture with MockFactory {
   private val wiring = new TestWiring
   private val uuid = UUID.randomUUID()
 
-  private def expectAutInfoRequest(path: Path) = {
+  private def expectAuthInfoRequest(path: Path) = {
     (wiring.http.getHttpAsString(_: URI)) expects wiring.authorisation.baseUri.resolve(s"$uuid/$path") once()
   }
 
-  "getOutInfo" should "parse the service response" in {
+  "getAuthInfo" should "parse the service response" in {
     val path = Paths.get("some.file")
-    expectAutInfoRequest(path) returning Success(
+    expectAuthInfoRequest(path) returning Success(
       s"""{
          |  "itemId":"$uuid/some.file",
          |  "owner":"someone",
@@ -58,12 +58,12 @@ class AuthorisationComponentSpec extends TestSupportFixture with MockFactory {
 
   it should "complain about invalid service response" in {
     val path = Paths.get("some.file")
-    expectAutInfoRequest(path) returning Success(
+    expectAuthInfoRequest(path) returning Success(
       s"""{"nonsense":"value"}"""
     )
     inside(wiring.authorisation.getFileItem(uuid, path)) {
-      case Failure(t) => t should have message
-        """parse error [No usable value for itemId
+      case Failure(t) => t.getMessage shouldBe
+        """parse error [class org.json4s.package$MappingException: No usable value for itemId
           |Did not find value which can be converted into java.lang.String] for: {"nonsense":"value"}""".stripMargin
     }
   }

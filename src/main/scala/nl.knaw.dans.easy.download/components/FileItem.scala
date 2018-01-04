@@ -16,14 +16,16 @@
 package nl.knaw.dans.easy.download.components
 
 import java.io.FileNotFoundException
-import java.util.NoSuchElementException
+import java.text.SimpleDateFormat
 
 import nl.knaw.dans.easy.download.NotAccessibleException
 import nl.knaw.dans.easy.download.components.RightsFor._
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
+import org.json4s.JsonAST.{ JNull, JString }
 import org.json4s._
 import org.json4s.native.JsonMethods.parse
+import org.json4s.ext.{ EnumNameSerializer, JodaTimeSerializers }
 
 import scala.util.{ Failure, Success, Try }
 
@@ -63,32 +65,13 @@ case class FileItem(itemId: String,
 }
 
 object FileItem {
+  private implicit val jsonFormats: Formats = new DefaultFormats {
+    override protected def dateFormatter: SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd")
+  } + new EnumNameSerializer(RightsFor) ++ JodaTimeSerializers.all
 
-  private implicit val jsonFormats: Formats = DefaultFormats
-
-  private case class IntermediateFileItem(// seems easier than typeHints for DefaultFormats
-                                          itemId: String,
-                                          owner: String,
-                                          dateAvailable: String,
-                                          accessibleTo: String,
-                                          visibleTo: String
-                                         )
   def fromJson(input: String): Try[FileItem] = {
-    Try(parse(input)
-      .extract[IntermediateFileItem]
-    ).recoverWith { case t =>
-      Failure(new Exception(s"parse error [${ t.getMessage }] for: $input", t))
-    }.map(fileItem => FileItem(
-      fileItem.itemId,
-      fileItem.owner,
-      new DateTime(fileItem.dateAvailable),
-      RightsFor.withName(fileItem.accessibleTo),
-      RightsFor.withName(fileItem.visibleTo)
-    )).recoverWith {
-      case t: NoSuchElementException =>
-        Failure(new Exception(s"Parse error [${ t.getMessage }] for: $input"))
-      case t: IllegalArgumentException =>
-        Failure(new Exception(s"Parse error, invalid date [${ t.getMessage }] for: $input"))
+    Try(parse(input).extract[FileItem]).recoverWith { case t =>
+      Failure(new Exception(s"parse error [${ t.getClass }: ${ t.getMessage }] for: $input", t))
     }
   }
 }
