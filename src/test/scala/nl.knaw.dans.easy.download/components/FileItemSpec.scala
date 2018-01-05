@@ -131,13 +131,7 @@ class FileItemSpec extends TestSupportFixture {
     inside(FileItem.fromJson(input)) {
       case Failure(t) => t.getMessage shouldBe
         s"""parse error [class org.json4s.package$$MappingException: No usable value for dateAvailable
-           |Invalid date format today] for: {
-           |  "itemId":"$uuid/some.file",
-           |  "owner":"someone",
-           |  "dateAvailable":"today",
-           |  "accessibleTo":"KNOWN",
-           |  "visibleTo":"ANONYMOUS"
-           |}""".stripMargin
+           |Invalid date format today] for: $input""".stripMargin
     }
   }
 }
