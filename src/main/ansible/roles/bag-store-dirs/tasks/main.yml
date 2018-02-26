@@ -28,9 +28,3 @@
     group: "easy-bag-store"
     mode: "0775"
   with_items: "{{ bag_stores }}"
-
-- name: Create link to test data
-  file:
-    src: /vagrant/src/test/resources/vault/stores/pdbs/bags
-    dest: /home/vagrant/test-data
-    state: link
