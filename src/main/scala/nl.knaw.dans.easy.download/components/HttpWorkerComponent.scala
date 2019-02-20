@@ -21,11 +21,12 @@ import nl.knaw.dans.easy.download.{ HttpStatusException, OutputStreamProvider }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.io.IOUtils
 import org.eclipse.jetty.http.HttpStatus.OK_200
+import scalaj.http.HttpResponse
 
 import scala.util.{ Failure, Success, Try }
-import scalaj.http.{ Http, HttpResponse }
 
 trait HttpWorkerComponent extends DebugEnhancedLogging {
+  this: HttpContext =>
 
   val http: HttpWorker
 

@@ -16,17 +16,14 @@
 package nl.knaw.dans.easy.download
 
 import java.net.URI
-import javax.naming.Context
-import javax.naming.ldap.{ InitialLdapContext, LdapContext }
 
-import nl.knaw.dans.easy.download.components.{ AuthenticationComponent, AuthorisationComponent, BagStoreComponent, HttpWorkerComponent }
-
-import scala.util.Try
+import nl.knaw.dans.easy.download.components._
 
 /**
  * Initializes and wires together the components of this application.
  */
 trait ApplicationWiring extends HttpWorkerComponent
+  with HttpContext
   with AuthorisationComponent
   with AuthenticationComponent
   with BagStoreComponent {
@@ -35,6 +32,7 @@ trait ApplicationWiring extends HttpWorkerComponent
    * the application configuration
    */
   val configuration: Configuration
+  override val applicationVersion: String = configuration.version
   override val http: HttpWorker = new HttpWorker {}
 
   override val bagStore: BagStore = new BagStore {

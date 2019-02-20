@@ -27,8 +27,10 @@ import scala.util.{ Failure, Success }
 
 class AuthorisationComponentSpec extends TestSupportFixture with MockFactory {
   private class TestWiring extends AuthorisationComponent
-    with HttpWorkerComponent {
+    with HttpWorkerComponent
+    with HttpContext {
     override val http: HttpWorker = mock[HttpWorker]
+    override val applicationVersion: String = "1.2.3"
     override val authorisation: Authorisation = new Authorisation {
       override val baseUri: URI = new URI("http://localhost:20170/")
     }
