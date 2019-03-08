@@ -24,9 +24,9 @@ import nl.knaw.dans.lib.logging.servlet._
 import org.eclipse.jetty.http.HttpStatus._
 import org.scalatra._
 import org.scalatra.auth.strategy.BasicAuthStrategy.BasicAuthRequest
+import scalaj.http.HttpResponse
 
 import scala.util.{ Failure, Success, Try }
-import scalaj.http.HttpResponse
 
 class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with ServletLogger with PlainLogFormatter with DebugEnhancedLogging {
   logger.info("File Download Servlet running...")
@@ -35,7 +35,7 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with Ser
 
   get("/") {
     contentType = "text/plain"
-    Ok("EASY Download Service running...").logResponse
+    Ok(s"EASY Download Service running v${ app.configuration.version }.").logResponse
   }
 
   get(s"/ark:/$naan/:uuid/*") {

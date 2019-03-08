@@ -36,10 +36,9 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
   private val naan = "123456"
   private val app = new EasyDownloadApp {
     // mocking at a low level to test the chain of error handling
-
     override val http: HttpWorker = mock[HttpWorker]
     override val authentication: Authentication = mock[Authentication]
-    override lazy val configuration: Configuration = new Configuration("", new PropertiesConfiguration() {
+    override lazy val configuration: Configuration = new Configuration("1.0.0", new PropertiesConfiguration() {
       addProperty("bag-store.url", "http://localhost:20110/")
       addProperty("auth-info.url", "http://localhost:20170/")
       addProperty("ark.name-assigning-authority-number", naan)
@@ -61,7 +60,7 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
 
   "get /" should "return the message that the service is running" in {
     get("/") {
-      body shouldBe "EASY Download Service running..."
+      body shouldBe "EASY Download Service running v1.0.0."
       status shouldBe OK_200
     }
   }
