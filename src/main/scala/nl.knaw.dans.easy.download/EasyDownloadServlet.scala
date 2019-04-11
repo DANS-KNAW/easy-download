@@ -28,14 +28,18 @@ import scalaj.http.HttpResponse
 
 import scala.util.{ Failure, Success, Try }
 
-class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with ServletLogger with PlainLogFormatter with DebugEnhancedLogging {
+class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet
+  with ServletLogger
+  with PlainLogFormatter
+  with LogResponseBodyOnError
+  with DebugEnhancedLogging {
   logger.info("File Download Servlet running...")
 
   private val naan = app.configuration.properties.getString("ark.name-assigning-authority-number")
 
   get("/") {
     contentType = "text/plain"
-    Ok(s"EASY Download Service running v${ app.configuration.version }.").logResponse
+    Ok(s"EASY Download Service running v${ app.configuration.version }.")
   }
 
   get(s"/ark:/$naan/:uuid/*") {
@@ -43,7 +47,7 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with Ser
     val userName = { Option(authRequest.username).getOrElse("ANONYMOUS") }
     logger.info(s"file download requested by $userName for $params")
 
-    val result = (getUUID, getPath, app.authenticate(authRequest)) match {
+    (getUUID, getPath, app.authenticate(authRequest)) match {
       case (Success(uuid), Success(Some(path)), Success(user)) => respond(s"$uuid/$path", app.downloadFile(uuid, path, user, () => response.outputStream))
       case (Success(_), Success(None), _) => BadRequest("file path is empty")
       case (Failure(t), _, _) => BadRequest(t.getMessage) // invalid uuid
@@ -55,8 +59,6 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet with Ser
         logger.error(s"not expected exception", t)
         InternalServerError("not expected exception")
     }
-    logger.info(s"returned ${ result.status } (${ result.body }) to $userName for $params")
-    result.logResponse
   }
 
   private def getUUID = Try {
