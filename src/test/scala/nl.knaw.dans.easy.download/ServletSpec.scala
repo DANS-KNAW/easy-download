@@ -19,6 +19,7 @@ import java.net.URI
 import java.nio.file.{ Path, Paths }
 import java.util.UUID
 
+import nl.knaw.dans.lib.encode.PathEncoding
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.eclipse.jetty.http.HttpStatus._
 import org.scalamock.scalatest.MockFactory
@@ -47,11 +48,11 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
   addServlet(new EasyDownloadServlet(app), "/*")
 
   private def expectDownloadStream(path: Path) = {
-    (app.http.copyHttpStream(_: URI)) expects new URI(s"http://localhost:20110/bags/$uuid/$path") once()
+    (app.http.copyHttpStream(_: URI)) expects new URI(s"http://localhost:20110/bags/$uuid/${ path.escapePath }") once()
   }
 
   private def expectAuthorisation(path: Path) = {
-    (app.http.getHttpAsString(_: URI)) expects new URI(s"http://localhost:20170/$uuid/$path") once()
+    (app.http.getHttpAsString(_: URI)) expects new URI(s"http://localhost:20170/$uuid/${ path.escapePath }") once()
   }
 
   private def expectAuthentication() = {

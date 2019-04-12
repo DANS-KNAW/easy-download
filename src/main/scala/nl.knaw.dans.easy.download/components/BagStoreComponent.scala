@@ -19,7 +19,8 @@ import java.net.URI
 import java.nio.file.Path
 import java.util.UUID
 
-import nl.knaw.dans.easy.download.{ OutputStreamProvider, escapePath }
+import nl.knaw.dans.easy.download.OutputStreamProvider
+import nl.knaw.dans.lib.encode.PathEncoding
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
 import scala.util.Try
@@ -34,7 +35,7 @@ trait BagStoreComponent extends DebugEnhancedLogging {
 
     def copyStream(bagId: UUID, path: Path): OutputStreamProvider => Try[Unit] = { outputStreamProducer =>
       for {
-        f <- Try(escapePath(path))
+        f <- Try(path.escapePath)
         uri <- Try(baseUri.resolve(s"bags/$bagId/$f"))
         _ <- http.copyHttpStream(uri)(outputStreamProducer)
       } yield ()

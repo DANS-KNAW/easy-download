@@ -20,6 +20,7 @@ import java.nio.file.Path
 import java.util.UUID
 
 import nl.knaw.dans.easy.download._
+import nl.knaw.dans.lib.encode.PathEncoding
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.json4s._
 
@@ -37,7 +38,7 @@ trait AuthorisationComponent extends DebugEnhancedLogging {
 
     def getFileItem(bagId: UUID, path: Path): Try[FileItem] = {
       for {
-        f <- Try(escapePath(path))
+        f <- Try(path.escapePath)
         uri = baseUri.resolve(s"$bagId/$f")
         jsonString <- http.getHttpAsString(uri)
         jsonOneLiner = jsonString.toOneLiner

@@ -19,6 +19,7 @@ import java.net.URI
 import java.nio.file.{ Path, Paths }
 import java.util.UUID
 
+import nl.knaw.dans.lib.encode.PathEncoding
 import nl.knaw.dans.easy.download.TestSupportFixture
 import nl.knaw.dans.easy.download.components.RightsFor._
 import org.scalamock.scalatest.MockFactory
@@ -39,14 +40,14 @@ class AuthorisationComponentSpec extends TestSupportFixture with MockFactory {
   private val uuid = UUID.randomUUID()
 
   private def expectAuthInfoRequest(path: Path) = {
-    (wiring.http.getHttpAsString(_: URI)) expects wiring.authorisation.baseUri.resolve(s"$uuid/$path") once()
+    (wiring.http.getHttpAsString(_: URI)) expects wiring.authorisation.baseUri.resolve(s"$uuid/${path.escapePath}") once()
   }
 
   "getAuthInfo" should "parse the service response" in {
     val path = Paths.get("some.file")
     expectAuthInfoRequest(path) returning Success(
       s"""{
-         |  "itemId":"$uuid/some.file",
+         |  "itemId":"$uuid/some%2Efile",
          |  "owner":"someone",
          |  "dateAvailable":"1992-07-30",
          |  "accessibleTo":"KNOWN",

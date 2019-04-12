@@ -16,16 +16,12 @@
 package nl.knaw.dans.easy
 
 import java.io.OutputStream
-import java.nio.file.Path
 
-import com.google.common.net.UrlEscapers
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
-import scala.collection.JavaConverters._
 import scalaj.http.HttpResponse
 
 package object download extends DebugEnhancedLogging {
-  private val pathEscaper = UrlEscapers.urlPathSegmentEscaper()
 
   type FeedBackMessage = String
   type OutputStreamProvider = () => OutputStream
@@ -48,10 +44,6 @@ package object download extends DebugEnhancedLogging {
   case class AuthenticationTypeNotSupportedException(cause: Throwable)
     extends Exception(cause.getMessage, cause) {
     logger.info(cause.getMessage)
-  }
-
-  def escapePath(path: Path): String = {
-    path.asScala.map(_.toString).map(pathEscaper.escape).mkString("/")
   }
 
   implicit class RichString(val s: String) extends AnyVal {
