@@ -3,6 +3,7 @@ Description=EASY Download Service
 
 [Service]
 ExecStart=/bin/java \
+   $INITIAL_HEAP_SIZE \
    -Dlogback.configurationFile=/etc/opt/dans.knaw.nl/easy-download/logback-service.xml \
    -Dapp.home=/opt/dans.knaw.nl/easy-download \
    -Dorg.scalatra.environment="production" \
