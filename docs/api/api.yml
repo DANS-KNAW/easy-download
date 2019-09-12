@@ -1,0 +1,83 @@
+openapi: 3.0.0
+info:
+  title: Download Service API
+  version: 1.1.2
+  description: |
+    This document specifies the Download Service API. It provides a direct interface to download files from the archive.
+    This API implements the operations `GET` on the paths `/` and `/ark:/:NAAN/:uuid/*`.
+    The NAAN represents the configured 'name assigning authority number' which for DANS is 73189.
+    It is not neccessary for this service to supply the bag store the bag is stored in.
+
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: 'http://localhost:20160'
+  - url: 'http://test.dans.knaw.nl:20160'
+
+paths:
+  /:
+    get:
+      summary: Returns a description of the service.
+      description:
+        This is the starting place for navigating the Download Service. It returns a description of the service.
+      responses:
+        200:
+          description: Description of the service
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: A plain text, human readable description of the service
+                example: Download Service is running.
+        500:
+          $ref: '#/components/responses/Unavailable'
+
+  /ark:/{NAAN}/{ItemId}:
+    get:
+      summary: Returns an output stream of the file specified by the ItemId.
+      description: |
+        An item is either a directory or file in a bag. The item which is fetched is specified by the item-id, which is the bag-id followed by the local path of the file in the bag.
+        This service requires the ItemId to refer to a file, it is unable to download directories:
+
+        ```
+        example valid ItemId:
+         40594b6d-8378-4260-b96b-13b57beadf7c/path/to/file
+        ```
+
+      parameters:
+        - $ref: '#/components/parameters/ItemId'
+        - $ref: '#/components/parameters/NAAN'
+      responses:
+        200:
+          description: OK, file stream will be returned
+        400:
+          description: Bad Request.
+        404:
+          description: The item could not be found or may not be visible.
+        500:
+          $ref: '#/components/responses/Unavailable'
+        503:
+          description: The service is unavailable.
+
+components:
+  parameters:
+    ItemId:
+      in: path
+      name: ItemId
+      schema:
+        type: string
+      required: true
+      description: The bag-id of the targeted bag followed by the path location of targeted items relative to the root of the bag.
+    NAAN:
+      in: path
+      name: NAAN
+      schema:
+        type: string
+      required: true
+      description: the Name Assigning Authority Number.
+
+  responses:
+    Unavailable:
+      description: Service is unavailable because of an error.
