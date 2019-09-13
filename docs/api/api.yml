@@ -39,7 +39,7 @@ paths:
       summary: Returns an output stream of the file specified by the ItemId.
       description: |
         An item is either a directory or file in a bag. The item which is fetched is specified by the item-id, which is the bag-id followed by the local path of the file in the bag.
-        This service requires the ItemId to refer to a file, it is unable to download directories:
+        This service requires the ItemId to refer to a payload file, it is unable to download directories:
 
         ```
         example valid ItemId:
