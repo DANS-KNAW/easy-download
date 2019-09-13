@@ -30,7 +30,7 @@ paths:
               schema:
                 type: string
                 description: A plain text, human readable description of the service
-                example: Download Service is running.
+                example: EASY Download Service running v1.1.2.
         500:
           $ref: '#/components/responses/Unavailable'
 
@@ -51,11 +51,17 @@ paths:
         - $ref: '#/components/parameters/NAAN'
       responses:
         200:
-          description: OK, file stream will be returned
+          description: The file stream will be returned
         400:
-          description: Bad Request.
+          description: Invalid bag-id; empty or invalid local path in the payload of the bag.
+        401:
+          description: Invalid credentials were provided.
+        403:
+          description: The provided credentials do not have sufficient access rights to download the file.
         404:
-          description: The item could not be found or may not be visible.
+          description: The item could not be found.
+        408:
+          description: The request has timed out.
         500:
           $ref: '#/components/responses/Unavailable'
         503:
