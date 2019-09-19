@@ -14,7 +14,7 @@ info:
 
 servers:
   - url: 'http://localhost:20160'
-  - url: 'http://test.dans.knaw.nl:20160'
+  - url: 'https://datavault.dans.knaw.nl:20160'
 
 paths:
   /:
@@ -31,51 +31,49 @@ paths:
                 type: string
                 description: A plain text, human readable description of the service
                 example: EASY Download Service running v1.1.2.
-        500:
-          $ref: '#/components/responses/Unavailable'
 
-  /ark:/{NAAN}/{ItemId}:
+  /ark:/{NAAN}/{FileId}:
     get:
-      summary: Returns an output stream of the file specified by the ItemId.
+      summary: Returns an output stream of the file specified by the file-id.
       description: |
-        An item is either a directory or file in a bag. The item which is fetched is specified by the item-id, which is the bag-id followed by the local path of the file in the bag.
-        This service requires the ItemId to refer to a payload file, it is unable to download directories:
+        The file which is fetched is specified by the file-id.
+        The file-id is defined as the bag-id followed by the percent encoded relative path of the file in the bag.
+        This service requires the item-id to refer to a payload file, it is unable to download directories and non-payload files:
 
         ```
-        example valid ItemId:
+        example valid file-ids:
          40594b6d-8378-4260-b96b-13b57beadf7c/path/to/file
+         40594b6d-8378-4260-b96b-13b57beadf7c/path/to/another%20file
         ```
 
       parameters:
-        - $ref: '#/components/parameters/ItemId'
+        - $ref: '#/components/parameters/FileId'
         - $ref: '#/components/parameters/NAAN'
       responses:
         200:
-          description: The file stream will be returned
+          description: The file stream will be returned.
         400:
           description: Invalid bag-id; empty or invalid local path in the payload of the bag.
         401:
-          description: Invalid credentials were provided.
+          description: Unauthorized.
         403:
-          description: The provided credentials do not have sufficient access rights to download the file.
+          description: Forbidden.
         404:
-          description: The item could not be found.
-        408:
-          description: The request has timed out.
+          description: The item could not be found at the specified location.
         500:
-          $ref: '#/components/responses/Unavailable'
+          description: Service is unavailable because of an error.
         503:
           description: The service is unavailable.
 
 components:
   parameters:
-    ItemId:
+    FileId:
       in: path
-      name: ItemId
+      name: FileId
       schema:
         type: string
       required: true
-      description: The bag-id of the targeted bag followed by the path location of targeted items relative to the root of the bag.
+      description: The bag-id of the targeted bag followed by the percent-encoded path location of a file relative to the root of the bag.
     NAAN:
       in: path
       name: NAAN
@@ -83,7 +81,3 @@ components:
         type: string
       required: true
       description: the Name Assigning Authority Number.
-
-  responses:
-    Unavailable:
-      description: Service is unavailable because of an error.
