@@ -34,7 +34,7 @@ paths:
 
   /ark:/{NAAN}/{FileId}:
     get:
-      summary: Returns an output stream of the file specified by the file-id.
+      summary: Returns the file specified by the file-id.
       description: |
         The file which is fetched is specified by the file-id.
         The file-id is defined as the bag-id followed by the percent encoded relative path of the file in the bag.
@@ -51,17 +51,17 @@ paths:
         - $ref: '#/components/parameters/NAAN'
       responses:
         200:
-          description: The file stream will be returned.
+          description: OK. Successfully returning the requested file.
         400:
-          description: Invalid bag-id; empty or invalid local path in the payload of the bag.
+          description: Bad request.
         401:
           description: Unauthorized.
         403:
           description: Forbidden.
         404:
-          description: The item could not be found at the specified location.
+          description: Not Found. The item could not be found at the specified location.
         500:
-          description: Service is unavailable because of an error.
+          description: Internal server error.
         503:
           description: The service is unavailable.
 
@@ -73,7 +73,7 @@ components:
       schema:
         type: string
       required: true
-      description: The bag-id of the targeted bag followed by the percent-encoded path location of a file relative to the root of the bag.
+      description: The [item-id](https://dans-knaw.github.io/easy-bag-store/03_definitions.html#item-id) of the file to retrieve.
     NAAN:
       in: path
       name: NAAN
