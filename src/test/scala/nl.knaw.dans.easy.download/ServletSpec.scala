@@ -39,11 +39,17 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
     // mocking at a low level to test the chain of error handling
     override val http: HttpWorker = mock[HttpWorker]
     override val authentication: Authentication = mock[Authentication]
-    override lazy val configuration: Configuration = new Configuration("1.0.0", new PropertiesConfiguration() {
-      addProperty("bag-store.url", "http://localhost:20110/")
-      addProperty("auth-info.url", "http://localhost:20170/")
-      addProperty("ark.name-assigning-authority-number", naan)
-    })
+    override lazy val configuration: Configuration = new Configuration("1.0.0",
+      new PropertiesConfiguration() {
+        addProperty("bag-store.url", "http://localhost:20110/")
+        addProperty("auth-info.url", "http://localhost:20170/")
+        addProperty("ark.name-assigning-authority-number", naan)
+      },
+      new PropertiesConfiguration() {
+        addProperty("http://creativecommons.org/publicdomain/zero/1.0", "CC0-1.0.html")
+        addProperty("http://creativecommons.org/licenses/by/4.0", "CC-BY-4.0.html")
+        addProperty("http://dans.knaw.nl/en/about/organisation-and-policy/legal-information/DANSGeneralconditionsofuseUKDEF.pdf", "DANSGeneralconditionsofuseUKDEF.pdf")
+      })
   }
   addServlet(new EasyDownloadServlet(app), "/*")
 
