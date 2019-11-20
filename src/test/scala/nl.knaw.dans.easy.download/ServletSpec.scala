@@ -58,7 +58,7 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
   }
 
   private def expectAuthorisation(path: Path) = {
-    (app.http.getHttpAsString(_: URI)) expects new URI(s"http://localhost:20170/$uuid/${ path.escapePath }") once()
+    (app.http.getHttpAsString(_: URI)) expects new URI(s"http://localhost:20170/$uuid/${ path.escapePath }") anyNumberOfTimes
   }
 
   private def expectAuthentication() = {
@@ -90,6 +90,29 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
     )
     get(s"ark:/$naan/$uuid/$path") {
       body shouldBe s"content of $uuid/$path "
+      status shouldBe OK_200
+    }
+  }
+
+  it should "return Open Access license link in the response headers when Open Access dataset" in {
+    val path = Paths.get("data/some.file")
+    expectAuthentication() returning Success(None)
+    expectDownloadStream(path) returning (os => {
+      os().write(s"content of $uuid/$path ")
+      Success(())
+    })
+    expectAuthorisation(path) returning Success(
+      s"""{
+         |  "itemId":"$uuid/$path",
+         |  "owner":"someone",
+         |  "dateAvailable":"1992-07-30",
+         |  "accessibleTo":"ANONYMOUS",
+         |  "visibleTo":"ANONYMOUS"
+         |}""".stripMargin
+    )
+    get(s"ark:/$naan/$uuid/$path") {
+      val licenseLinkText = "<%s>; rel=\"%s\"; title=\"%s\"".format("http://creativecommons.org/publicdomain/zero/1.0", "license", "CC0-1.0.html")
+      header("Link") shouldBe licenseLinkText
       status shouldBe OK_200
     }
   }
