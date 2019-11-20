@@ -19,7 +19,7 @@ import java.io.OutputStream
 import java.nio.file.Path
 import java.util.UUID
 
-import nl.knaw.dans.easy.download.components.User
+import nl.knaw.dans.easy.download.components.{ FileItem, User }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.eclipse.jetty.http.HttpStatus.NOT_FOUND_404
 import org.scalatra.auth.strategy.BasicAuthStrategy.BasicAuthRequest
@@ -41,13 +41,17 @@ trait EasyDownloadApp extends DebugEnhancedLogging with ApplicationWiring {
                    outputStreamProducer: () => OutputStream
                   ): Try[Unit] = {
     for {
-      fileItem <- authorisation.getFileItem(bagId, path)
+      fileItem <- getFileItem(bagId, path)
       _ <- fileItem.availableFor(user)
       _ <- bagStore.copyStream(bagId, path)(outputStreamProducer).recoverWith {
         case HttpStatusException(_, HttpResponse(_, NOT_FOUND_404, _)) =>
           Failure(new Exception(s"invalid bag, file downloadable but not found: $path"))
       }
     } yield ()
+  }
+
+  def getFileItem(bagId: UUID, path: Path): Try[FileItem] = {
+      authorisation.getFileItem(bagId, path)
   }
 }
 

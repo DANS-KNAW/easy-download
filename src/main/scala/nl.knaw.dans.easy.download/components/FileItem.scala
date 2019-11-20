@@ -49,6 +49,10 @@ case class FileItem(itemId: String,
     else Failure(NotAccessibleException(s"Download not allowed of: $itemId")) // might require group/permission
   }
 
+  def isOpenAccess: Boolean = {
+    accessibleTo == ANONYMOUS
+  }
+
   private def isOwnedBy(user: Option[User]): Boolean = {
     user.exists(_.id == owner)
   }
