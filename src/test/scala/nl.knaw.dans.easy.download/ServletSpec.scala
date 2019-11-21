@@ -27,6 +27,7 @@ import org.scalatra.auth.strategy.BasicAuthStrategy.BasicAuthRequest
 import org.scalatra.test.EmbeddedJettyContainer
 import org.scalatra.test.scalatest.ScalatraSuite
 
+import scala.language.postfixOps
 import scala.util.Success
 
 class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
