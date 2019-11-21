@@ -15,11 +15,11 @@
  */
 package nl.knaw.dans.easy.download
 
-import nl.knaw.dans.easy.download.components.License
 import java.io.FileNotFoundException
 import java.nio.file.{ Path, Paths }
 import java.util.UUID
 
+import nl.knaw.dans.easy.download.components.License
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import nl.knaw.dans.lib.logging.servlet._
 import org.eclipse.jetty.http.HttpStatus._
@@ -86,9 +86,7 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet
 
   private def sendOkResponse(uuid: UUID, path: Path): Unit = {
     val licenseLinkText = getLicenseLinkText(uuid, path).getOrElse(None)
-    if (licenseLinkText.nonEmpty) {
-      response.addHeader("Link", licenseLinkText.get)
-    }
+    licenseLinkText.foreach(response.addHeader("Link", _))
     Ok()
   }
 
