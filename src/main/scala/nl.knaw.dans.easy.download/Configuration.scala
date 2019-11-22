@@ -23,7 +23,7 @@ import resource.managed
 
 import scala.io.Source
 
-case class Configuration(version: String, properties: PropertiesConfiguration)
+case class Configuration(version: String, properties: PropertiesConfiguration, licenses: PropertiesConfiguration)
 
 object Configuration extends DebugEnhancedLogging {
 
@@ -41,7 +41,8 @@ object Configuration extends DebugEnhancedLogging {
       properties = new PropertiesConfiguration() {
         setDelimiterParsingDisabled(true)
         load(cfgPath.resolve("application.properties").toFile)
-      }
+      },
+      licenses = new PropertiesConfiguration(cfgPath.resolve("lic/licenses.properties").toFile)
     )
   }
 }

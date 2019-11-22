@@ -27,6 +27,7 @@ import org.scalatra.auth.strategy.BasicAuthStrategy.BasicAuthRequest
 import org.scalatra.test.EmbeddedJettyContainer
 import org.scalatra.test.scalatest.ScalatraSuite
 
+import scala.language.postfixOps
 import scala.util.Success
 
 class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
@@ -39,11 +40,17 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
     // mocking at a low level to test the chain of error handling
     override val http: HttpWorker = mock[HttpWorker]
     override val authentication: Authentication = mock[Authentication]
-    override lazy val configuration: Configuration = new Configuration("1.0.0", new PropertiesConfiguration() {
-      addProperty("bag-store.url", "http://localhost:20110/")
-      addProperty("auth-info.url", "http://localhost:20170/")
-      addProperty("ark.name-assigning-authority-number", naan)
-    })
+    override lazy val configuration: Configuration = new Configuration("1.0.0",
+      new PropertiesConfiguration() {
+        addProperty("bag-store.url", "http://localhost:20110/")
+        addProperty("auth-info.url", "http://localhost:20170/")
+        addProperty("ark.name-assigning-authority-number", naan)
+      },
+      new PropertiesConfiguration() {
+        addProperty("http://creativecommons.org/publicdomain/zero/1.0", "CC0-1.0.html")
+        addProperty("http://creativecommons.org/licenses/by/4.0", "CC-BY-4.0.html")
+        addProperty("http://dans.knaw.nl/en/about/organisation-and-policy/legal-information/DANSGeneralconditionsofuseUKDEF.pdf", "DANSGeneralconditionsofuseUKDEF.pdf")
+      })
   }
   addServlet(new EasyDownloadServlet(app), "/*")
 
@@ -52,7 +59,7 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
   }
 
   private def expectAuthorisation(path: Path) = {
-    (app.http.getHttpAsString(_: URI)) expects new URI(s"http://localhost:20170/$uuid/${ path.escapePath }") once()
+    (app.http.getHttpAsString(_: URI)) expects new URI(s"http://localhost:20170/$uuid/${ path.escapePath }") anyNumberOfTimes
   }
 
   private def expectAuthentication() = {
@@ -84,6 +91,29 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
     )
     get(s"ark:/$naan/$uuid/$path") {
       body shouldBe s"content of $uuid/$path "
+      status shouldBe OK_200
+    }
+  }
+
+  it should "return Open Access license link in the response headers when Open Access dataset" in {
+    val path = Paths.get("data/some.file")
+    expectAuthentication() returning Success(None)
+    expectDownloadStream(path) returning (os => {
+      os().write(s"content of $uuid/$path ")
+      Success(())
+    })
+    expectAuthorisation(path) returning Success(
+      s"""{
+         |  "itemId":"$uuid/$path",
+         |  "owner":"someone",
+         |  "dateAvailable":"1992-07-30",
+         |  "accessibleTo":"ANONYMOUS",
+         |  "visibleTo":"ANONYMOUS"
+         |}""".stripMargin
+    )
+    get(s"ark:/$naan/$uuid/$path") {
+      val licenseLinkText = "<%s>; rel=\"%s\"; title=\"%s\"".format("http://creativecommons.org/publicdomain/zero/1.0", "license", "CC0-1.0.html")
+      header("Link") shouldBe licenseLinkText
       status shouldBe OK_200
     }
   }
