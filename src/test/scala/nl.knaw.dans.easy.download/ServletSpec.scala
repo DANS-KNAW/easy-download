@@ -28,7 +28,7 @@ import org.scalatra.test.EmbeddedJettyContainer
 import org.scalatra.test.scalatest.ScalatraSuite
 
 import scala.language.postfixOps
-import scala.util.Success
+import scala.util.{ Failure, Success }
 
 class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
   with ScalatraSuite
@@ -55,7 +55,7 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
   addServlet(new EasyDownloadServlet(app), "/*")
 
   private def expectDownloadStream(path: Path) = {
-    (app.http.copyHttpStream(_: URI)) expects new URI(s"http://localhost:20110/bags/$uuid/${ path.escapePath }") once()
+    (app.http.copyHttpStream(_: URI)) expects new URI(s"http://localhost:20110/bags/$uuid/${ path.escapePath }") noMoreThanOnce()
   }
 
   private def expectAuthorisation(path: Path) = {
@@ -63,7 +63,7 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
   }
 
   private def expectAuthentication() = {
-    (app.authentication.authenticate(_: BasicAuthRequest)) expects * once()
+    (app.authentication.authenticate(_: BasicAuthRequest)) expects * noMoreThanOnce()
   }
 
   "get /" should "return the message that the service is running" in {
@@ -92,6 +92,49 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
     get(s"ark:/$naan/$uuid/$path") {
       body shouldBe s"content of $uuid/$path "
       status shouldBe OK_200
+    }
+  }
+
+  it should "return file when it is Open Access even when the user is not authenticated" in {
+    val path = Paths.get("data/some.file")
+    expectAuthentication() returning Failure(InvalidUserPasswordException("user", new Exception("invalid password", new Throwable)))
+    expectDownloadStream(path) returning (os => {
+      os().write(s"content of $uuid/$path ")
+      Success(())
+    })
+    expectAuthorisation(path) returning Success(
+      s"""{
+         |  "itemId":"$uuid/$path",
+         |  "owner":"someone",
+         |  "dateAvailable":"1992-07-30",
+         |  "accessibleTo":"ANONYMOUS",
+         |  "visibleTo":"ANONYMOUS"
+         |}""".stripMargin
+    )
+    get(s"ark:/$naan/$uuid/$path") {
+      body shouldBe s"content of $uuid/$path "
+      status shouldBe OK_200
+    }
+  }
+
+  it should "return UN_AUTHORIZED error when the file is not Open Access and when the user is not authenticated" in {
+    val path = Paths.get("data/some.file")
+    expectAuthentication() returning Failure(InvalidUserPasswordException("user", new Exception("invalid password", new Throwable)))
+    expectDownloadStream(path) returning (os => {
+      os().write(s"content of $uuid/$path ")
+      Success(())
+    })
+    expectAuthorisation(path) returning Success(
+      s"""{
+         |  "itemId":"$uuid/$path",
+         |  "owner":"someone",
+         |  "dateAvailable":"1992-07-30",
+         |  "accessibleTo":"KNOWN",
+         |  "visibleTo":"ANONYMOUS"
+         |}""".stripMargin
+    )
+    get(s"ark:/$naan/$uuid/$path") {
+      status shouldBe UNAUTHORIZED_401
     }
   }
 
