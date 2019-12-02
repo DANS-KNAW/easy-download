@@ -98,7 +98,7 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet
     }
   }
 
-  private def sendOkResponse(uuid: UUID, path: Path): Unit = {
+  private def sendOkResponse(uuid: UUID, path: Path) = {
     val licenseLinkText = getLicenseLinkText(uuid, path).getOrElse(None)
     licenseLinkText.foreach(response.addHeader("Link", _))
     Ok()
