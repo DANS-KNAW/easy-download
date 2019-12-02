@@ -54,16 +54,16 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
   }
   addServlet(new EasyDownloadServlet(app), "/*")
 
-  private def expectDownloadStream(path: Path) = {
-    (app.http.copyHttpStream(_: URI)) expects new URI(s"http://localhost:20110/bags/$uuid/${ path.escapePath }") noMoreThanOnce()
+  private def expectDownloadStream(path: Path, n: Int = 1) = {
+    (app.http.copyHttpStream(_: URI)) expects new URI(s"http://localhost:20110/bags/$uuid/${ path.escapePath }") repeat n
   }
 
   private def expectAuthorisation(path: Path) = {
     (app.http.getHttpAsString(_: URI)) expects new URI(s"http://localhost:20170/$uuid/${ path.escapePath }") anyNumberOfTimes
   }
 
-  private def expectAuthentication() = {
-    (app.authentication.authenticate(_: BasicAuthRequest)) expects * noMoreThanOnce()
+  private def expectAuthentication(n: Int = 1) = {
+    (app.authentication.authenticate(_: BasicAuthRequest)) expects * repeat n
   }
 
   "get /" should "return the message that the service is running" in {
@@ -75,7 +75,7 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
 
   s"get ark:/$naan/:uuid/*" should "return file" in {
     val path = Paths.get("data/some.file")
-    expectAuthentication() returning Success(None)
+    expectAuthentication(0)
     expectDownloadStream(path) returning (os => {
       os().write(s"content of $uuid/$path ")
       Success(())
@@ -97,7 +97,7 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
 
   it should "return file when it is Open Access even when the user is not authenticated" in {
     val path = Paths.get("data/some.file")
-    expectAuthentication() returning Failure(InvalidUserPasswordException("user", new Exception("invalid password", new Throwable)))
+    expectAuthentication(0)
     expectDownloadStream(path) returning (os => {
       os().write(s"content of $uuid/$path ")
       Success(())
@@ -120,10 +120,7 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
   it should "return UN_AUTHORIZED error when the file is not Open Access and when the user is not authenticated" in {
     val path = Paths.get("data/some.file")
     expectAuthentication() returning Failure(InvalidUserPasswordException("user", new Exception("invalid password", new Throwable)))
-    expectDownloadStream(path) returning (os => {
-      os().write(s"content of $uuid/$path ")
-      Success(())
-    })
+    expectDownloadStream(path, 0)
     expectAuthorisation(path) returning Success(
       s"""{
          |  "itemId":"$uuid/$path",
@@ -140,7 +137,7 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
 
   it should "return Open Access license link in the response headers when Open Access dataset" in {
     val path = Paths.get("data/some.file")
-    expectAuthentication() returning Success(None)
+    expectAuthentication(0)
     expectDownloadStream(path) returning (os => {
       os().write(s"content of $uuid/$path ")
       Success(())
@@ -217,7 +214,7 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
   }
 
   it should "report invalid uuid" in {
-    expectAuthentication() returning Success(None)
+    expectAuthentication(0)
     get(s"ark:/$naan/1-2-3-4-5-6/some.file") {
       body shouldBe "Invalid UUID string: 1-2-3-4-5-6"
       status shouldBe BAD_REQUEST_400
@@ -225,7 +222,7 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
   }
 
   it should "report missing path" in {
-    expectAuthentication() returning Success(None)
+    expectAuthentication(0)
     get(s"ark:/$naan/$uuid/") {
       body shouldBe "file path is empty"
       status shouldBe BAD_REQUEST_400
