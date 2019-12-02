@@ -19,7 +19,7 @@ import java.io.FileNotFoundException
 import java.nio.file.{ Path, Paths }
 import java.util.UUID
 
-import nl.knaw.dans.easy.download.components.{ License, User }
+import nl.knaw.dans.easy.download.components.{ FileItem, License, User }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import nl.knaw.dans.lib.logging.servlet._
 import org.eclipse.jetty.http.HttpStatus._
@@ -65,8 +65,9 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet
   }
 
   private def download(authRequest: BasicAuthRequest, userName: String, uuid: UUID, path: Path) = {
-    getUser(authRequest, userName, uuid, path) match {
-      case Success(user) => respond(uuid, path, app.downloadFile(uuid, path, user, () => response.outputStream))
+    val fileItem = app.authorisation.getFileItem(uuid, path)
+    getUser(authRequest, userName, fileItem.toOption) match {
+      case Success(user) => respond(uuid, path, app.downloadFile(uuid, path, fileItem, user, () => response.outputStream))
       case Failure(InvalidUserPasswordException(_, _)) => Unauthorized()
       case Failure(AuthenticationNotAvailableException(_)) => ServiceUnavailable("Authentication service not available, try anonymous download")
       case Failure(AuthenticationTypeNotSupportedException(_)) => BadRequest("Only anonymous download or basic authentication supported")
@@ -76,10 +77,9 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet
     }
   }
 
-  private def getUser(authRequest: BasicAuthRequest, userName: String, uuid: UUID, path: Path): Try[Option[User]] = {
-    val fileItem = app.authorisation.getFileItem(uuid, path).toOption
+  private def getUser(authRequest: BasicAuthRequest, userName: String, fileItem: Option[FileItem]): Try[Option[User]] = {
     if (fileItem.nonEmpty && fileItem.get.isOpenAccess)
-      Success(Option(User(userName, Seq.empty)))
+      Success(Some(User(userName, Seq.empty)))
     else
       app.authenticate(authRequest)
   }
