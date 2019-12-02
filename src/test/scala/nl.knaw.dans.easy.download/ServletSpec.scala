@@ -19,6 +19,7 @@ import java.net.URI
 import java.nio.file.{ Path, Paths }
 import java.util.UUID
 
+import nl.knaw.dans.easy.download.components.Licenses
 import nl.knaw.dans.lib.encode.PathEncoding
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.eclipse.jetty.http.HttpStatus._
@@ -46,11 +47,11 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
         addProperty("auth-info.url", "http://localhost:20170/")
         addProperty("ark.name-assigning-authority-number", naan)
       },
-      new PropertiesConfiguration() {
+      new Licenses(new PropertiesConfiguration() {
         addProperty("http://creativecommons.org/publicdomain/zero/1.0", "CC0-1.0.html")
         addProperty("http://creativecommons.org/licenses/by/4.0", "CC-BY-4.0.html")
         addProperty("http://dans.knaw.nl/en/about/organisation-and-policy/legal-information/DANSGeneralconditionsofuseUKDEF.pdf", "DANSGeneralconditionsofuseUKDEF.pdf")
-      })
+      }))
   }
   addServlet(new EasyDownloadServlet(app), "/*")
 
@@ -112,7 +113,7 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
          |}""".stripMargin
     )
     get(s"ark:/$naan/$uuid/$path") {
-      val licenseLinkText = "<%s>; rel=\"%s\"; title=\"%s\"".format("http://creativecommons.org/publicdomain/zero/1.0", "license", "CC0-1.0.html")
+      val licenseLinkText = """<http://creativecommons.org/publicdomain/zero/1.0>; rel="license"; title="CC0-1.0.html""""
       header("Link") shouldBe licenseLinkText
       status shouldBe OK_200
     }

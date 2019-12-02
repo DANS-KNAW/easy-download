@@ -21,40 +21,25 @@ import org.apache.commons.configuration.PropertiesConfiguration
 import scala.collection.JavaConverters._
 import scala.util.Try
 
-/**
- * @param file fileItem of the file to download
- */
-
-class License(file: FileItem, licenses: PropertiesConfiguration) extends DebugEnhancedLogging {
+class Licenses(licenses: PropertiesConfiguration) extends DebugEnhancedLogging {
 
   private val OPEN_ACCESS_LICENSE = "http://creativecommons.org/publicdomain/zero/1.0"
   private val DANS_LICENSE = "http://dans.knaw.nl/en/about/organisation-and-policy/legal-information/DANSGeneralconditionsofuseUKDEF.pdf"
 
-  private val license = getLicense(file, licenses)
+  private val licenseKeys = licenses.getKeys.asScala.toSet
 
-  def getLicenseLinkText: Try[Option[String]] = Try {
-    if (license.nonEmpty) {
-      val (licenseAddress, licenseTitle) = license.get
-      Some("<%s>; rel=\"%s\"; title=\"%s\"".format(licenseAddress, "license", licenseTitle))
-    }
-    else
-      None
-  }
-
-  private def getLicense(file: FileItem, licenses: PropertiesConfiguration): Option[(String, String)] = {
-    val keys = licenses.getKeys.asScala.toSet
+  def getLicenseLinkText(file: FileItem): Try[Option[String]] = Try {
     val licenseKey = if (file.isOpenAccess) OPEN_ACCESS_LICENSE
                      else DANS_LICENSE
 
-    val key = keys.find(_.equals(licenseKey))
-    if (key.isEmpty) licenseNotFound(licenseKey)
-    else Some(key.get, licenses.getProperty(key.get).toString)
+    if (licenseKeys contains licenseKey)
+      Some("<%s>; rel=\"%s\"; title=\"%s\"".format(licenseKey, "license", licenses.getString(licenseKey)))
+    else
+      licenseNotFound(licenseKey)
   }
 
-  private def licenseNotFound(licenseKey: String): Option[(String, String)] = {
+  private def licenseNotFound(licenseKey: String): Option[String] = {
     logger.error("No license found with key: " + licenseKey)
     None
   }
 }
-
-

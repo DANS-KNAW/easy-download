@@ -19,7 +19,6 @@ import java.io.FileNotFoundException
 import java.nio.file.{ Path, Paths }
 import java.util.UUID
 
-import nl.knaw.dans.easy.download.components.License
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import nl.knaw.dans.lib.logging.servlet._
 import org.eclipse.jetty.http.HttpStatus._
@@ -93,7 +92,7 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet
   private def getLicenseLinkText(uuid: UUID, path: Path): Try[Option[String]] = {
     for {
       fileItem <- app.getFileItem(uuid, path)
-      licenseLinkText <- new License(fileItem, app.configuration.licenses).getLicenseLinkText
+      licenseLinkText <- app.configuration.licenses.getLicenseLinkText(fileItem)
     } yield licenseLinkText
   }
 }
