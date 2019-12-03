@@ -17,13 +17,14 @@ package nl.knaw.dans.easy.download
 
 import java.nio.file.{ Files, Path, Paths }
 
+import nl.knaw.dans.easy.download.components.Licenses
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.configuration.PropertiesConfiguration
 import resource.managed
 
 import scala.io.Source
 
-case class Configuration(version: String, properties: PropertiesConfiguration, licenses: PropertiesConfiguration)
+case class Configuration(version: String, properties: PropertiesConfiguration, licenses: Licenses)
 
 object Configuration extends DebugEnhancedLogging {
 
@@ -42,7 +43,7 @@ object Configuration extends DebugEnhancedLogging {
         setDelimiterParsingDisabled(true)
         load(cfgPath.resolve("application.properties").toFile)
       },
-      licenses = new PropertiesConfiguration(cfgPath.resolve("lic/licenses.properties").toFile)
+      licenses = new Licenses(new PropertiesConfiguration(cfgPath.resolve("lic/licenses.properties").toFile))
     )
   }
 }
