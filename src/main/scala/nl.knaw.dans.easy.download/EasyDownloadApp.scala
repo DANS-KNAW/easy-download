@@ -37,11 +37,12 @@ trait EasyDownloadApp extends DebugEnhancedLogging with ApplicationWiring {
    */
   def downloadFile(bagId: UUID,
                    path: Path,
+                   fileItem: Try[FileItem],
                    user: Option[User],
                    outputStreamProducer: () => OutputStream
                   ): Try[Unit] = {
     for {
-      fileItem <- getFileItem(bagId, path)
+      fileItem <- fileItem
       _ <- fileItem.availableFor(user)
       _ <- bagStore.copyStream(bagId, path)(outputStreamProducer).recoverWith {
         case HttpStatusException(_, HttpResponse(_, NOT_FOUND_404, _)) =>
