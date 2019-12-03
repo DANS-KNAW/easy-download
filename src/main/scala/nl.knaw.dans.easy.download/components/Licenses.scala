@@ -26,16 +26,13 @@ class Licenses(licenses: PropertiesConfiguration) extends DebugEnhancedLogging {
   private val OPEN_ACCESS_LICENSE = "http://creativecommons.org/publicdomain/zero/1.0"
   private val DANS_LICENSE = "http://dans.knaw.nl/en/about/organisation-and-policy/legal-information/DANSGeneralconditionsofuseUKDEF.pdf"
 
-  private val licenseKeys = licenses.getKeys.asScala.toSet
-
   def getLicenseLinkText(file: FileItem): Try[Option[String]] = Try {
     val licenseKey = if (file.isOpenAccess) OPEN_ACCESS_LICENSE
                      else DANS_LICENSE
 
-    if (licenseKeys contains licenseKey)
-      Some("<%s>; rel=\"%s\"; title=\"%s\"".format(licenseKey, "license", licenses.getString(licenseKey)))
-    else
-      licenseNotFound(licenseKey)
+    Option(licenses.getString(licenseKey))
+      .map(licenseTitle => s"""<$licenseKey>; rel="license"; title="$licenseTitle"""")
+      .orElse(licenseNotFound(licenseKey))
   }
 
   private def licenseNotFound(licenseKey: String): Option[String] = {
