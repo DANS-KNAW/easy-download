@@ -67,7 +67,7 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet
   private def download(authRequest: BasicAuthRequest, userName: String, uuid: UUID, path: Path) = {
     // When fileItem is a Failure, it is transformed into a None for getUser(...); in that case authentication is guaranteed to be performed.
     // If authentication succeeds, the original error caused by fileItem surfaces from app.downloadFile(...);
-    // if authentication fails, priority is given to that error above the error in fileItem.    val fileItem = app.authorisation.getFileItem(uuid, path)
+    // if authentication fails, priority is given to that error above the error in fileItem.
     val fileItem = app.authorisation.getFileItem(uuid, path)
     getUser(authRequest, userName, fileItem.toOption) match {
       case Success(user) => respond(uuid, path, app.downloadFile(uuid, path, fileItem, user, () => response.outputStream))
