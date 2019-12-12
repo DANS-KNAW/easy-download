@@ -51,11 +51,13 @@ class AuthorisationComponentSpec extends TestSupportFixture with MockFactory {
          |  "owner":"someone",
          |  "dateAvailable":"1992-07-30",
          |  "accessibleTo":"KNOWN",
-         |  "visibleTo":"ANONYMOUS"
+         |  "visibleTo":"ANONYMOUS",
+         |  "licenseKey":"http://opensource.org/licenses/MIT",
+         |  "licenseTitle":"MIT.txt"
          |}""".stripMargin
     )
     wiring.authorisation.getFileItem(uuid, path) should matchPattern {
-      case Success(FileItem(_, "someone", _, KNOWN, ANONYMOUS)) =>
+      case Success(FileItem(_, "someone", _, KNOWN, ANONYMOUS, "http://opensource.org/licenses/MIT", "MIT.txt")) =>
     }
   }
 
