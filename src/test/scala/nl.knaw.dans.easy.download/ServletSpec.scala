@@ -136,7 +136,7 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
     }
   }
 
-  it should "return Open Access license link in the response headers when Open Access dataset" in {
+  it should "return in header a Link with the license key and license title received from Authorization" in {
     val path = Paths.get("data/some.file")
     expectAuthentication(0)
     expectDownloadStream(path) returning (os => {
