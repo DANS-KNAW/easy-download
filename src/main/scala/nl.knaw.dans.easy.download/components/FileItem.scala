@@ -38,7 +38,7 @@ case class FileItem(itemId: String,
                     accessibleTo: RightsFor.Value,
                     visibleTo: RightsFor.Value,
                     licenseKey: String,
-                    licenseTitle: String
+                    licenseTitle: String,
                    ) {
   def availableFor(user: Option[User]): Try[Unit] = {
     if (isOwnedBy(user)) Success(())
