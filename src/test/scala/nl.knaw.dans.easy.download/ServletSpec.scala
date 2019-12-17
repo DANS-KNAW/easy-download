@@ -217,8 +217,31 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
   it should "report invalid uuid" in {
     expectAuthentication(0)
     get(s"ark:/$naan/1-2-3-4-5-6/some.file") {
-      body shouldBe "Invalid UUID string: 1-2-3-4-5-6"
+      body shouldBe "String '1-2-3-4-5-6' is not a UUID"
       status shouldBe BAD_REQUEST_400
+    }
+  }
+
+  it should "accept uuid without hyphens" in {
+    val uuidWithoutHyphens = uuid.toString.replace("-", "")
+    val path = Paths.get("data/some.file")
+    expectAuthentication(0)
+    expectDownloadStream(path) returning (os => {
+      os().write(s"content of $uuid/$path ")
+      Success(())
+    })
+    expectAuthorisation(path) returning Success(
+      s"""{
+         |  "itemId":"$uuid/$path",
+         |  "owner":"someone",
+         |  "dateAvailable":"1992-07-30",
+         |  "accessibleTo":"ANONYMOUS",
+         |  "visibleTo":"ANONYMOUS"
+         |}""".stripMargin
+    )
+    get(s"ark:/$naan/$uuidWithoutHyphens/$path") {
+      body shouldBe s"content of $uuid/$path "
+      status shouldBe OK_200
     }
   }
 
