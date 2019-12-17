@@ -226,7 +226,7 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
     expectAuthentication(0)
     get(s"ark:/$naan/$uuid/") {
       body shouldBe "file path is empty"
-      status shouldBe BAD_REQUEST_400
+      status shouldBe METHOD_NOT_ALLOWED_405
     }
   }
 
