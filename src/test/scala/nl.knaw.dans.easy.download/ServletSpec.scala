@@ -226,7 +226,7 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
     expectAuthentication(0)
     get(s"ark:/$naan/1-2-3-4-5-6/some.file") {
       body shouldBe "Invalid UUID string: 1-2-3-4-5-6"
-      status shouldBe BAD_REQUEST_400
+      status shouldBe NOT_FOUND_404
     }
   }
 

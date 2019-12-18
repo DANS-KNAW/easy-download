@@ -51,7 +51,7 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet
     (getUUID, getPath) match {
       case (Success(uuid), Success(Some(path))) => download(authRequest, userName, uuid, path)
       case (Success(_), Success(None)) => BadRequest("file path is empty")
-      case (Failure(t), _) => BadRequest(t.getMessage) // invalid uuid
+      case (Failure(t), _) => NotFound(t.getMessage) // invalid uuid
       case (_, Failure(t)) => BadRequest(t.getMessage) // invalid path
     }
   }
