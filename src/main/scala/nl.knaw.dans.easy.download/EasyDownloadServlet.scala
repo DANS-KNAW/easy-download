@@ -68,9 +68,9 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet
     // When fileItem is a Failure, it is transformed into a None for getUser(...); in that case authentication is guaranteed to be performed.
     // If authentication succeeds, the original error caused by fileItem surfaces from app.downloadFile(...);
     // if authentication fails, priority is given to that error above the error in fileItem.
-    val fileItem = app.authorisation.getFileItem(uuid, path)
+    val fileItem = app.getFileItem(uuid, path)
     getUser(authRequest, userName, fileItem.toOption) match {
-      case Success(user) => respond(uuid, path, app.downloadFile(uuid, path, fileItem, user, () => response.outputStream))
+      case Success(user) => respond(uuid, path, fileItem, app.downloadFile(uuid, path, fileItem, user, () => response.outputStream))
       case Failure(InvalidUserPasswordException(_, _)) => Unauthorized()
       case Failure(AuthenticationNotAvailableException(_)) => ServiceUnavailable("Authentication service not available, try anonymous download")
       case Failure(AuthenticationTypeNotSupportedException(_)) => BadRequest("Only anonymous download or basic authentication supported")
@@ -87,9 +87,9 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet
       app.authenticate(authRequest)
   }
 
-  private def respond(uuid: UUID, path: Path, copyResult: Try[Unit]) = {
+  private def respond(uuid: UUID, path: Path, fileItem: Try[FileItem], copyResult: Try[Unit]) = {
     copyResult match {
-      case Success(()) => sendOkResponse(uuid, path)
+      case Success(()) => sendOkResponse(fileItem)
       case Failure(HttpStatusException(message, HttpResponse(_, SERVICE_UNAVAILABLE_503, _))) => ServiceUnavailable(message)
       case Failure(HttpStatusException(message, HttpResponse(_, REQUEST_TIMEOUT_408, _))) => RequestTimeout(message)
       case Failure(HttpStatusException(_, HttpResponse(_, NOT_FOUND_404, _))) => NotFound(s"not found: $uuid/$path")
@@ -101,16 +101,12 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet
     }
   }
 
-  private def sendOkResponse(uuid: UUID, path: Path) = {
-    val licenseLinkText = getLicenseLinkText(uuid, path).getOrElse(None)
-    licenseLinkText.foreach(response.addHeader("Link", _))
+  private def sendOkResponse(fileItem: Try[FileItem]) = {
+    getLicenseLinkText(fileItem).foreach(response.addHeader("Link", _))
     Ok()
   }
 
-  private def getLicenseLinkText(uuid: UUID, path: Path): Try[Option[String]] = {
-    for {
-      fileItem <- app.getFileItem(uuid, path)
-      licenseLinkText <- app.configuration.licenses.getLicenseLinkText(fileItem)
-    } yield licenseLinkText
+  private def getLicenseLinkText(fileItem: Try[FileItem]): Option[String] = {
+    fileItem.map(file => Some(s"""<${file.licenseKey}>; rel="license"; title="${file.licenseTitle}"""")).getOrElse(None)
   }
 }
