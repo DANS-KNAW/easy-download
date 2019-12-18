@@ -58,13 +58,13 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet
   }
 
   private def getUUID = {
-    uuidAfterHyphenCheck(params("uuid")).toUUID match {
+    correctHyphenation(params("uuid")).toUUID match {
       case Right(uuid) => Success(uuid)
       case Left(error) => Failure(error)
     }
   }
 
-  private def uuidAfterHyphenCheck(uuid: String): String =  {
+  private def correctHyphenation(uuid: String): String =  {
     // In ARK identifiers hyphens are considered to be insignificant, that is why we here
     // add the hyphens to a uuid string that doesn't contain any hyphens and whose length is 32 characters
     // (lenghth of a valid UUID without hyphens).
