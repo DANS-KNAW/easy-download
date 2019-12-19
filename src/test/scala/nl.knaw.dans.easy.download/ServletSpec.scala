@@ -19,7 +19,6 @@ import java.net.URI
 import java.nio.file.{ Path, Paths }
 import java.util.UUID
 
-import nl.knaw.dans.easy.download.components.Licenses
 import nl.knaw.dans.lib.encode.PathEncoding
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.eclipse.jetty.http.HttpStatus._
@@ -46,12 +45,7 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
         addProperty("bag-store.url", "http://localhost:20110/")
         addProperty("auth-info.url", "http://localhost:20170/")
         addProperty("ark.name-assigning-authority-number", naan)
-      },
-      new Licenses(new PropertiesConfiguration() {
-        addProperty("http://creativecommons.org/publicdomain/zero/1.0", "CC0-1.0.html")
-        addProperty("http://creativecommons.org/licenses/by/4.0", "CC-BY-4.0.html")
-        addProperty("http://dans.knaw.nl/en/about/organisation-and-policy/legal-information/DANSGeneralconditionsofuseUKDEF.pdf", "DANSGeneralconditionsofuseUKDEF.pdf")
-      }))
+      })
   }
   addServlet(new EasyDownloadServlet(app), "/*")
 
@@ -87,7 +81,9 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
          |  "owner":"someone",
          |  "dateAvailable":"1992-07-30",
          |  "accessibleTo":"ANONYMOUS",
-         |  "visibleTo":"ANONYMOUS"
+         |  "visibleTo":"ANONYMOUS",
+         |  "licenseKey":"http://creativecommons.org/publicdomain/zero/1.0",
+         |  "licenseTitle":"CC0-1.0.html"
          |}""".stripMargin
     )
     get(s"ark:/$naan/$uuid/$path") {
@@ -109,7 +105,9 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
          |  "owner":"someone",
          |  "dateAvailable":"1992-07-30",
          |  "accessibleTo":"ANONYMOUS",
-         |  "visibleTo":"ANONYMOUS"
+         |  "visibleTo":"ANONYMOUS",
+         |  "licenseKey":"http://creativecommons.org/publicdomain/zero/1.0",
+         |  "licenseTitle":"CC0-1.0.html"
          |}""".stripMargin
     )
     get(s"ark:/$naan/$uuid/$path") {
@@ -128,7 +126,9 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
          |  "owner":"someone",
          |  "dateAvailable":"1992-07-30",
          |  "accessibleTo":"KNOWN",
-         |  "visibleTo":"ANONYMOUS"
+         |  "visibleTo":"ANONYMOUS",
+         |  "licenseKey":"http://opensource.org/licenses/MIT",
+         |  "licenseTitle":"MIT.txt"
          |}""".stripMargin
     )
     get(s"ark:/$naan/$uuid/$path") {
@@ -136,7 +136,7 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
     }
   }
 
-  it should "return Open Access license link in the response headers when Open Access dataset" in {
+  it should "return in header a Link with the license key and license title received from Authorization" in {
     val path = Paths.get("data/some.file")
     expectAuthentication(0)
     expectDownloadStream(path) returning (os => {
@@ -149,7 +149,9 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
          |  "owner":"someone",
          |  "dateAvailable":"1992-07-30",
          |  "accessibleTo":"ANONYMOUS",
-         |  "visibleTo":"ANONYMOUS"
+         |  "visibleTo":"ANONYMOUS",
+         |  "licenseKey":"http://creativecommons.org/publicdomain/zero/1.0",
+         |  "licenseTitle":"CC0-1.0.html"
          |}""".stripMargin
     )
     get(s"ark:/$naan/$uuid/$path") {
@@ -167,7 +169,9 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
          |  "owner":"someone",
          |  "dateAvailable":"1992-07-30",
          |  "accessibleTo":"invalidValue",
-         |  "visibleTo":"ANONYMOUS"
+         |  "visibleTo":"ANONYMOUS",
+         |  "licenseKey":"",
+         |  "licenseTitle":""
          |}""".stripMargin
     expectAuthorisation(path) returning Success(expectedHttpResponse)
     expectAuthentication() returning Success(None)
@@ -187,7 +191,9 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
          |  "owner":"someone",
          |  "dateAvailable":"1992-07-30",
          |  "accessibleTo":"KNOWN",
-         |  "visibleTo":"KNOWN"
+         |  "visibleTo":"KNOWN",
+         |  "licenseKey":"",
+         |  "licenseTitle":""
          |}""".stripMargin
     )
     get(s"ark:/$naan/$uuid/some.file") {
@@ -205,7 +211,9 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
          |  "owner":"someone",
          |  "dateAvailable":"1992-07-30",
          |  "accessibleTo":"KNOWN",
-         |  "visibleTo":"ANONYMOUS"
+         |  "visibleTo":"ANONYMOUS",
+         |  "licenseKey":"",
+         |  "licenseTitle":""
          |}""".stripMargin
     )
     get(s"ark:/$naan/$uuid/$path") {
@@ -218,7 +226,7 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
     expectAuthentication(0)
     get(s"ark:/$naan/1-2-3-4-5-6/some.file") {
       body shouldBe "Invalid UUID string: 1-2-3-4-5-6"
-      status shouldBe BAD_REQUEST_400
+      status shouldBe NOT_FOUND_404
     }
   }
 

@@ -30,7 +30,9 @@ class FileItemSpec extends TestSupportFixture {
     FileItem(itemId = "uuid/file.txt", owner = "someone",
       dateAvailable = new DateTime("4016-12-15"),
       accessibleTo = RESTRICTED_REQUEST,
-      visibleTo = RESTRICTED_REQUEST
+      visibleTo = RESTRICTED_REQUEST,
+      licenseKey = "http://opensource.org/licenses/MIT",
+      licenseTitle = "MIT.txt",
     ).availableFor(Some(User("someone"))) shouldBe Success(())
   }
 
@@ -38,7 +40,9 @@ class FileItemSpec extends TestSupportFixture {
     FileItem(itemId = "uuid/data/file.txt", owner = "someone",
       dateAvailable = new DateTime("2016-12-15"),
       accessibleTo = KNOWN,
-      visibleTo = KNOWN
+      visibleTo = KNOWN,
+      licenseKey = "http://opensource.org/licenses/MIT",
+      licenseTitle = "MIT.txt",
     ).availableFor(Some(User("somebody"))) shouldBe Success(())
   }
 
@@ -46,7 +50,9 @@ class FileItemSpec extends TestSupportFixture {
     FileItem(itemId = "uuid/file.txt", owner = "someone",
       dateAvailable = new DateTime("2016-12-15"),
       accessibleTo = KNOWN,
-      visibleTo = KNOWN
+      visibleTo = KNOWN,
+      licenseKey = "http://opensource.org/licenses/MIT",
+      licenseTitle = "MIT.txt",
     ).availableFor(Some(User("someone"))) shouldBe Success(())
   }
 
@@ -54,7 +60,9 @@ class FileItemSpec extends TestSupportFixture {
     FileItem(itemId = "uuid/data/file.txt", owner = "someone",
       dateAvailable = new DateTime("2016-12-15"),
       accessibleTo = KNOWN,
-      visibleTo = ANONYMOUS
+      visibleTo = ANONYMOUS,
+      licenseKey = "http://opensource.org/licenses/MIT",
+      licenseTitle = "MIT.txt",
     ).availableFor(None) should matchPattern {
       case Failure(NotAccessibleException("Please login to download: uuid/data/file.txt")) =>
     }
@@ -64,7 +72,9 @@ class FileItemSpec extends TestSupportFixture {
     FileItem(itemId = "uuid/data/file.txt", owner = "someone",
       dateAvailable = new DateTime("4016-12-15"),
       accessibleTo = KNOWN,
-      visibleTo = ANONYMOUS
+      visibleTo = ANONYMOUS,
+      licenseKey = "http://opensource.org/licenses/MIT",
+      licenseTitle = "MIT.txt",
     ).availableFor(Some(User("somebody"))) should matchPattern {
       case Failure(NotAccessibleException("Download becomes available on 4016-12-15 [uuid/data/file.txt]")) =>
     }
@@ -74,7 +84,9 @@ class FileItemSpec extends TestSupportFixture {
     FileItem(itemId = "uuid/data/file.txt", owner = "someone",
       dateAvailable = new DateTime("2016-12-15"),
       accessibleTo = RESTRICTED_GROUP,
-      visibleTo = ANONYMOUS
+      visibleTo = ANONYMOUS,
+      licenseKey = "http://opensource.org/licenses/MIT",
+      licenseTitle = "MIT.txt",
     ).availableFor(Some(User("somebody"))) should matchPattern {
       case Failure(NotAccessibleException("Download not allowed of: uuid/data/file.txt")) =>
     }
@@ -84,7 +96,9 @@ class FileItemSpec extends TestSupportFixture {
     FileItem(itemId = "uuid/data/file.txt", owner = "someone",
       dateAvailable = new DateTime("2016-12-15"),
       accessibleTo = RESTRICTED_GROUP,
-      visibleTo = RESTRICTED_GROUP
+      visibleTo = RESTRICTED_GROUP,
+      licenseKey = "http://opensource.org/licenses/MIT",
+      licenseTitle = "MIT.txt",
     ).availableFor(Some(User("somebody"))) should matchPattern {
       case Failure(t: FileNotFoundException) if t.getMessage == "uuid/data/file.txt" =>
     }
@@ -94,7 +108,9 @@ class FileItemSpec extends TestSupportFixture {
     FileItem(itemId = "uuid/data/file.txt", owner = "someone",
       dateAvailable = new DateTime("4016-12-15"),
       accessibleTo = RESTRICTED_GROUP,
-      visibleTo = ANONYMOUS
+      visibleTo = ANONYMOUS,
+      licenseKey = "http://opensource.org/licenses/MIT",
+      licenseTitle = "MIT.txt",
     ).availableFor(Some(User("somebody"))) should matchPattern {
       case Failure(NotAccessibleException("Download becomes available on 4016-12-15 [uuid/data/file.txt]")) =>
     }
@@ -109,7 +125,9 @@ class FileItemSpec extends TestSupportFixture {
          |  "owner":"someone",
          |  "dateAvailable":"1992-07-30",
          |  "accessibleTo":"invalidValue",
-         |  "visibleTo":"ANONYMOUS"
+         |  "visibleTo":"ANONYMOUS",
+         |  "licenseKey":"http://opensource.org/licenses/MIT",
+         |  "licenseTitle":"MIT.txt",
          |}""".stripMargin.toOneLiner
     inside(FileItem.fromJson(input)) {
       case Failure(t) =>
@@ -117,6 +135,8 @@ class FileItemSpec extends TestSupportFixture {
         t.getMessage should endWith (s" for: $input")
         t.getMessage should include ("accessibleTo")
         t.getMessage should include ("invalidValue")
+        t.getMessage should include ("http://opensource.org/licenses/MIT")
+        t.getMessage should include ("MIT.txt")
     }
   }
 
@@ -127,7 +147,9 @@ class FileItemSpec extends TestSupportFixture {
          |  "owner":"someone",
          |  "dateAvailable":"today",
          |  "accessibleTo":"KNOWN",
-         |  "visibleTo":"ANONYMOUS"
+         |  "visibleTo":"ANONYMOUS",
+         |  "licenseKey":"http://opensource.org/licenses/MIT",
+         |  "licenseTitle":"MIT.txt",
          |}""".stripMargin.toOneLiner
     inside(FileItem.fromJson(input)) {
       case Failure(t) =>
@@ -135,6 +157,8 @@ class FileItemSpec extends TestSupportFixture {
         t.getMessage should endWith (s" for: $input")
         t.getMessage should include ("dateAvailable")
         t.getMessage should include ("today")
+        t.getMessage should include ("http://opensource.org/licenses/MIT")
+        t.getMessage should include ("MIT.txt")
     }
   }
 
@@ -145,7 +169,9 @@ class FileItemSpec extends TestSupportFixture {
          |  "owner":"someone",
          |  "dateAvailable":"1992-07-30",
          |  "accessibleTo":"KNOWN",
-         |  "visibleTo":"ANONYMOUS"
+         |  "visibleTo":"ANONYMOUS",
+         |  "licenseKey":"http://opensource.org/licenses/MIT",
+         |  "licenseTitle":"MIT.txt",
          |}""".stripMargin
     )) { case Success(_) =>}
     inside(FileItem.fromJson(
@@ -154,7 +180,9 @@ class FileItemSpec extends TestSupportFixture {
          |  "itemId":"$uuid/some.file",
          |  "owner":"someone",
          |  "dateAvailable":"1992-07-30",
-         |  "visibleTo":"ANONYMOUS"
+         |  "licenseTitle":"MIT.txt",
+         |  "visibleTo":"ANONYMOUS",
+         |  "licenseKey":"http://opensource.org/licenses/MIT",
          |}""".stripMargin
     )) { case Success(_) =>}
   }
