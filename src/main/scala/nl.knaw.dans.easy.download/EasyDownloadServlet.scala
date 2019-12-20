@@ -22,6 +22,7 @@ import java.util.UUID
 import nl.knaw.dans.easy.download.components.{ FileItem, User }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import nl.knaw.dans.lib.logging.servlet._
+import nl.knaw.dans.lib.string._
 import org.eclipse.jetty.http.HttpStatus._
 import org.scalatra._
 import org.scalatra.auth.strategy.BasicAuthStrategy.BasicAuthRequest
@@ -56,8 +57,21 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet
     }
   }
 
-  private def getUUID = Try {
-    UUID.fromString(params("uuid"))
+  private def getUUID = {
+    correctHyphenation(params("uuid")).toUUID match {
+      case Right(uuid) => Success(uuid)
+      case Left(error) => Failure(error)
+    }
+  }
+
+  private def correctHyphenation(uuid: String): String =  {
+    // In ARK identifiers hyphens are considered to be insignificant, that is why we here
+    // add the hyphens to a uuid string that doesn't contain any hyphens and whose length is 32 characters
+    // (lenghth of a valid UUID without hyphens).
+    if (!uuid.contains("-") && uuid.length == 32)
+      s"${uuid.slice(0, 8)}-${uuid.slice(8, 12)}-${uuid.slice(12, 16)}-${uuid.slice(16, 20)}-${uuid.slice(20, 32)}"
+    else
+      uuid
   }
 
   private def getPath = Try {
