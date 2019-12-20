@@ -244,7 +244,9 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
          |  "owner":"someone",
          |  "dateAvailable":"1992-07-30",
          |  "accessibleTo":"ANONYMOUS",
-         |  "visibleTo":"ANONYMOUS"
+         |  "visibleTo":"ANONYMOUS",
+         |  "licenseKey":"",
+         |  "licenseTitle":""
          |}""".stripMargin
     )
     get(s"ark:/$naan/$uuidWithoutHyphens/$path") {
