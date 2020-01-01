@@ -36,7 +36,7 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
 
   private val uuid = UUID.randomUUID()
   private val naan = "123456"
-  private val app = new EasyDownloadApp {
+  private val app: EasyDownloadApp = new EasyDownloadApp {
     // mocking at a low level to test the chain of error handling
     override val http: HttpWorker = mock[HttpWorker]
     override val authentication: Authentication = mock[Authentication]
@@ -53,8 +53,8 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
     (app.http.copyHttpStream(_: URI)) expects new URI(s"http://localhost:20110/bags/$uuid/${ path.escapePath }") repeat n
   }
 
-  private def expectAuthorisation(path: Path) = {
-    (app.http.getHttpAsString(_: URI)) expects new URI(s"http://localhost:20170/$uuid/${ path.escapePath }") anyNumberOfTimes
+  private def expectAuthorisation(path: Path, n: Int = 1) = {
+    (app.http.getHttpAsString(_: URI)) expects new URI(s"http://localhost:20170/$uuid/${ path.escapePath }") repeat n
   }
 
   private def expectAuthentication(n: Int = 1) = {
@@ -252,6 +252,21 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
     get(s"ark:/$naan/$uuidWithoutHyphens/$path") {
       body shouldBe s"content of $uuid/$path "
       status shouldBe OK_200
+    }
+  }
+
+  it should "not accept uuid with hyphens in the wrong places" in {
+    val uuidWithoutHyphens = uuid.toString.replace("-", "")
+    val uuidWithHyphenInWrongPlace = s"${ uuidWithoutHyphens.slice(0, 6) }-${ uuidWithoutHyphens.slice(6, 32) }"
+    val path = Paths.get("data/some.file")
+
+    expectAuthentication(0)
+    (app.http.copyHttpStream(_: URI)) expects * never()
+    (app.http.getHttpAsString(_: URI)) expects * never()
+
+    get(s"ark:/$naan/$uuidWithHyphenInWrongPlace/$path") {
+      body shouldBe s"String '$uuidWithHyphenInWrongPlace' is not a UUID"
+      status shouldBe NOT_FOUND_404
     }
   }
 
