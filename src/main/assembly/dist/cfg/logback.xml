@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <configuration>
-	<appender name="FILE"
+	<appender name="FILE-DOWNLOAD"
 			  class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<file>${user.home}/easy-download.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -11,8 +11,27 @@
 			<pattern>[%date{ISO8601}] %-5level %msg%n</pattern>
 		</encoder>
 	</appender>
-	<root level="warn">
-		<appender-ref ref="FILE" />
+	<appender name="SIFT-STATISTICS" class="ch.qos.logback.classic.sift.SiftingAppender">
+		<discriminator>
+			<key>logFile</key>
+			<defaultValue>download</defaultValue>
+		</discriminator>
+		<sift>
+			<appender name="FILE-${logFile}" class="ch.qos.logback.core.rolling.RollingFileAppender">
+				<file>${user.home}/easy-${logFile}.log</file>
+				<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+					<fileNamePattern>${user.home}/easy-${logFile}.%d{yyyy-MM-dd}.log</fileNamePattern>
+					<maxHistory>30</maxHistory>
+				</rollingPolicy>
+				<encoder>
+					<pattern>%date{ISO8601} %msg%n</pattern>
+				</encoder>
+			</appender>
+		</sift>
+	</appender>
+	<root level="info">
+		<appender-ref ref="FILE-DOWNLOAD"/>
+		<appender-ref ref="SIFT-STATISTICS"/>
 	</root>
-	<logger name="nl.knaw.dans.easy" level="info" />
+	<logger name="nl.knaw.dans.easy" level="info"/>
 </configuration>

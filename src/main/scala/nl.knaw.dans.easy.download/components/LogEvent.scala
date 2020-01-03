@@ -21,6 +21,7 @@ import java.io.File
 import javax.servlet.http.HttpServletRequest
 import nl.knaw.dans.easy.download.InvalidBagException
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import org.slf4j.MDC
 
 import scala.util.{ Failure, Try }
 import scala.xml.{ Elem, Node }
@@ -30,8 +31,7 @@ case class LogEvent(request: HttpServletRequest, bagId: UUID, fileItem: FileItem
 
   def logDownloadEvent: Try[Unit] = Try {
     val user = userInfo.getOrElse(User("Anonymous", Seq.empty))
-    val logEventString = getLogEventString(user)
-    //  ip
+    logDownload(getLogEventString(user))
   }
 
   private def getLogEventString(user: User): String = {
@@ -42,7 +42,10 @@ case class LogEvent(request: HttpServletRequest, bagId: UUID, fileItem: FileItem
   }
 
   private def logDownload(logEventString: String): Unit = {
-
+    // This causes logger to write into easy-statistics log-file
+    MDC.put("logFile", "statistics")
+    logger.info(logEventString)
+    MDC.remove("logFile")
   }
 
   private def getUserId(user: User): String = {
