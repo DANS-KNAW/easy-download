@@ -15,15 +15,17 @@
  */
 package nl.knaw.dans.easy.download.components
 
-import java.net.URI
-import java.nio.file.Path
+import java.net.{ URI, URL }
+import java.nio.file.{ Path, Paths }
 import java.util.UUID
 
-import nl.knaw.dans.easy.download.OutputStreamProvider
+import nl.knaw.dans.easy.download.{ HttpStatusException, OutputStreamProvider }
 import nl.knaw.dans.lib.encode.PathEncoding
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import scalaj.http.Http
 
-import scala.util.Try
+import scala.util.{ Failure, Success, Try }
+import scala.xml.{ Elem, XML }
 
 trait BagStoreComponent extends DebugEnhancedLogging {
   this: HttpWorkerComponent =>
@@ -32,6 +34,8 @@ trait BagStoreComponent extends DebugEnhancedLogging {
 
   trait BagStore {
     val baseUri: URI
+    val connTimeout: Int
+    val readTimeout: Int
 
     def copyStream(bagId: UUID, path: Path): OutputStreamProvider => Try[Unit] = { outputStreamProducer =>
       for {
@@ -39,6 +43,24 @@ trait BagStoreComponent extends DebugEnhancedLogging {
         uri <- Try(baseUri.resolve(s"bags/$bagId/$f"))
         _ <- http.copyHttpStream(uri)(outputStreamProducer)
       } yield ()
+    }
+
+    def loadDDM(bagId: UUID): Try[Elem] = {
+      logger.info(s"[$bagId] retrieving ddm.xml")
+      toURL(bagId, "metadata/dataset.xml").flatMap(loadXml)
+    }
+
+    private def loadXml(url: URL): Try[Elem] = {
+      for {
+        response <- Try { Http(url.toString).timeout(connTimeout, readTimeout).asString }
+        _ <- if (response.isSuccess) Success(())
+             else Failure(HttpStatusException(url.toString, response))
+      } yield XML.loadString(response.body)
+    }
+
+    private def toURL(bagId: UUID, path: String): Try[URL] = Try {
+      val escapedPath = Paths.get(path).escapePath
+      baseUri.resolve(s"bags/$bagId/$escapedPath").toURL
     }
   }
 }

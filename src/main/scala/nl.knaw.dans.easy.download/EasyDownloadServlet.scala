@@ -84,7 +84,7 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet
     // if authentication fails, priority is given to that error above the error in fileItem.
     val fileItem = app.getFileItem(uuid, path)
     getUser(authRequest, userName, fileItem.toOption) match {
-      case Success(user) => respond(uuid, path, fileItem, app.downloadFile(uuid, path, fileItem, user, () => response.outputStream))
+      case Success(user) => respond(uuid, path, fileItem, app.downloadFile(request, uuid, path, fileItem, user, () => response.outputStream))
       case Failure(InvalidUserPasswordException(_, _)) => Unauthorized()
       case Failure(AuthenticationNotAvailableException(_)) => ServiceUnavailable("Authentication service not available, try anonymous download")
       case Failure(AuthenticationTypeNotSupportedException(_)) => BadRequest("Only anonymous download or basic authentication supported")

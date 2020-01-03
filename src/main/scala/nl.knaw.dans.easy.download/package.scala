@@ -41,10 +41,13 @@ package object download extends DebugEnhancedLogging {
     extends Exception(cause.getMessage, cause) {
     logger.info(cause.getMessage)
   }
+
   case class AuthenticationTypeNotSupportedException(cause: Throwable)
     extends Exception(cause.getMessage, cause) {
     logger.info(cause.getMessage)
   }
+
+  case class InvalidBagException(message: String) extends Exception(message)
 
   implicit class RichString(val s: String) extends AnyVal {
 
