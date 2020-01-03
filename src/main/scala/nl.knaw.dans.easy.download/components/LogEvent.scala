@@ -15,17 +15,16 @@
  */
 package nl.knaw.dans.easy.download.components
 
-import java.util.UUID
 import java.io.File
+import java.util.UUID
 
 import javax.servlet.http.HttpServletRequest
-import nl.knaw.dans.easy.download.InvalidBagException
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.slf4j.MDC
 
-import scala.util.{ Failure, Try }
-import scala.xml.{ Elem, Node }
 import scala.language.postfixOps
+import scala.util.Try
+import scala.xml.Elem
 
 case class LogEvent(request: HttpServletRequest, bagId: UUID, fileItem: FileItem, userInfo: Option[User], ddm: Elem) extends DebugEnhancedLogging {
 

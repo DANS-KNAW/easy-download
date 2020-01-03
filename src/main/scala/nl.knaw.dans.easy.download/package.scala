@@ -47,8 +47,6 @@ package object download extends DebugEnhancedLogging {
     logger.info(cause.getMessage)
   }
 
-  case class InvalidBagException(message: String) extends Exception(message)
-
   implicit class RichString(val s: String) extends AnyVal {
 
     // TODO candidate for dans-scala-lib
