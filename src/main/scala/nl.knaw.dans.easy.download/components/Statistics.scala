@@ -16,31 +16,33 @@
 package nl.knaw.dans.easy.download.components
 
 import java.io.File
+import java.net.URL
 import java.util.UUID
 
 import javax.servlet.http.HttpServletRequest
+import nl.knaw.dans.easy.download.HttpStatusException
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.slf4j.MDC
+import scalaj.http.Http
 
-import scala.language.postfixOps
-import scala.util.Try
-import scala.xml.Elem
+import scala.util.{ Failure, Success, Try }
+import scala.xml.{ Elem, XML }
 
-case class LogEvent(request: HttpServletRequest, bagId: UUID, fileItem: FileItem, userInfo: Option[User], ddm: Elem) extends DebugEnhancedLogging {
+case class Statistics(request: HttpServletRequest, bagId: UUID, fileItem: FileItem, userInfo: Option[User], ddm: Elem, disciplines: Map[String, String]) extends DebugEnhancedLogging {
 
-  def logDownloadEvent: Try[Unit] = Try {
+  def logDownload: Try[Unit] = Try {
     val user = userInfo.getOrElse(User("Anonymous", Seq.empty))
-    logDownload(getLogEventString(user))
+    logDownloadEvent(getLogEventString(user))
   }
 
   private def getLogEventString(user: User): String = {
-    s"DOWNLOAD_FILE_REQUEST ; ${getUserId(user)} ; $getUserRoles ; ${getUserGroups(user)} ; $getIpAddress ; " +
+    s"- DOWNLOAD_FILE_REQUEST ; ${getUserId(user)} ; $getUserRoles ; ${getUserGroups(user)} ; $getIpAddress ; " +
     s"dataset(DATASET_ID: \"$getDatasetId\") ; file(FILE_NAME(0): \"$getFileName\"" +
     s"discipline(SUB_DISCIPLINE_ID: \"$getSubDiscipline\" ; TOP_DISCIPLINE_LABEL: \"$getTopDisciplineLabel\" ; " +
     s"SUB_DISCIPLINE_LABEL: \"${getSubDisciplineLabel(getSubDiscipline)} ; TOP_DISCIPLINE_ID: \"$getTopDiscipline\")"
   }
 
-  private def logDownload(logEventString: String): Unit = {
+  private def logDownloadEvent(logEventString: String): Unit = {
     // This causes logger to write into easy-statistics log-file
     MDC.put("logFile", "statistics")
     logger.info(logEventString)
@@ -62,21 +64,22 @@ case class LogEvent(request: HttpServletRequest, bagId: UUID, fileItem: FileItem
       "()"
   }
 
-  private def getIpAddress = {
+  private def getIpAddress: String = {
     val forwardedFor = request.getHeader("X-FORWARDED-FOR")
-    if (forwardedFor nonEmpty) forwardedFor
-    else request.getRemoteAddr
+    if (forwardedFor != null && forwardedFor.trim.nonEmpty) forwardedFor
+    else if (request.getRemoteAddr != null) request.getRemoteAddr
+    else ""
   }
 
   private def getDatasetId = {
-    val identifier = (ddm \ "identifier").find(id => id.text.startsWith("easy-dataset"))
+    val identifier = (ddm \ "identifier").find(_.text.startsWith("easy-dataset"))
     if (identifier.isDefined) identifier.get.text
     else datasetIdentifierNotFound
   }
 
   private def datasetIdentifierNotFound: String = {
     logger.error(s"Easy dataset-id <ddm:identifier> not found in $bagId/dataset.xml")
-    ""
+    "-"
   }
 
   private def getFileName: String = {
@@ -90,7 +93,7 @@ case class LogEvent(request: HttpServletRequest, bagId: UUID, fileItem: FileItem
   }
 
   private def getSubDisciplineLabel(subDiscipline: String): String = {
-    ???
+    disciplines.
   }
 
   private def getTopDiscipline: String = {

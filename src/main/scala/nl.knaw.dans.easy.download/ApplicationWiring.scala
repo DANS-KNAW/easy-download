@@ -32,6 +32,8 @@ trait ApplicationWiring extends HttpWorkerComponent
    * the application configuration
    */
   val configuration: Configuration
+  val disciplines: Map[String, String]
+
   override val applicationVersion: String = configuration.version
   override val http: HttpWorker = new HttpWorker {}
 
@@ -41,6 +43,7 @@ trait ApplicationWiring extends HttpWorkerComponent
     override val readTimeout: Int = configuration.properties.getInt("bag-store.read-timeout-ms")
     logger.info(s"BagStore: baseUri = $baseUri")
   }
+
   override val authorisation: Authorisation = new Authorisation {
     override val baseUri: URI = new URI(configuration.properties.getString("auth-info.url"))
     logger.info(s"Authorisation: baseUri = $baseUri")
