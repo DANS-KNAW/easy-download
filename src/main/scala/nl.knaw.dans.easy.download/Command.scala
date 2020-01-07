@@ -93,7 +93,7 @@ object Command extends App with DebugEnhancedLogging {
   private def addDiscipline(file: File): Try[Unit] = {
     for {
       foxml <- loadXml(new URL(file.getAbsolutePath))
-    } yield addToDisciplinesMap(foxml)
+    } yield addToDisciplinesMap(foxml) _
   }
 
   private def addToDisciplinesMap(xml: Elem)(disciplines: DisciplinesMap): Unit = {

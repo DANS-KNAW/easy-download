@@ -43,9 +43,12 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
     override lazy val configuration: Configuration = new Configuration("1.0.0",
       new PropertiesConfiguration() {
         addProperty("bag-store.url", "http://localhost:20110/")
+        addProperty("bag-store.connection-timeout-ms", 600000)
+        addProperty("bag-store.read-timeout-ms", 600000)
         addProperty("auth-info.url", "http://localhost:20170/")
         addProperty("ark.name-assigning-authority-number", naan)
       })
+    override val disciplines: Map[String, (String, String)] = Map[String, (String, String)]()
   }
   addServlet(new EasyDownloadServlet(app), "/*")
 
