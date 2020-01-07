@@ -15,6 +15,7 @@
  */
 package nl.knaw.dans.easy.download
 
+import java.io.{ File, FilenameFilter }
 import java.net.URL
 import java.nio.file.Paths
 
@@ -37,9 +38,9 @@ object Command extends App with DebugEnhancedLogging {
   }
   val connTimeout: Int = configuration.properties.getInt("bag-store.connection-timeout-ms")
   val readTimeout: Int = configuration.properties.getInt("bag-store.read-timeout-ms")
-  val NARCIS_CLASSIFICATION = new URL("https://www.narcis.nl/content/classification/narcis-classification.rdf")
+  val easyBasicDigitalObjects = new File("https://github.com/DANS-KNAW/easy-dtap/blob/master/provisioning/roles/easy-fcrepo/files/basic-digital-objects/")
 
-  getDisciplines(NARCIS_CLASSIFICATION)
+  getDisciplines(easyBasicDigitalObjects)
     .doIfSuccess(discipl => {
       val app = EasyDownloadApp(configuration, discipl.toMap)
       runSubcommand(app)
@@ -73,24 +74,36 @@ object Command extends App with DebugEnhancedLogging {
     "Service terminated normally."
   }
 
-  def getDisciplines(url: URL): Try[mutable.Map[String, String]] = {
-    for {
-      rdf <- loadXml(url)
-    } yield getDisciplinesMap(rdf)
-  }
+  private def getDisciplines(digitalObjects: File): Try[DisciplinesMap] = Try {
+    implicit var disciplines: DisciplinesMap = mutable.Map[String, (String, String)]()
 
-  private def getDisciplinesMap(rdf: Elem): mutable.Map[String, String] = {
-    var disciplines = mutable.Map[String, String]()
-    val descriptions = rdf \ "Description"
-    descriptions.foreach(description =>
-      (description \ "prefLabel").foreach(label =>
-        label.attribute("xml:lang").foreach(attribute =>
-          if (attribute.text == "en") disciplines += (getClassificationId((description \ "@rdf:about").text) -> label.text))))
+    getEasyDisciplineFiles(digitalObjects).foreach(file =>
+      addDiscipline(file)
+        .doIfFailure({ case e => throw new Exception(s"Downloading easy-discipline xml-file ${ file.getName } failed", e) })
+    )
     disciplines
   }
 
-  private def getClassificationId(s: String): String = {
-    s.slice(s.lastIndexOf("/"), s.length)
+  private def getEasyDisciplineFiles(digitalObjects: File): Array[File] = {
+    digitalObjects.listFiles(new FilenameFilter {
+      def accept(dir: File, name: String): Boolean = name.startsWith("easy-discipline:") && !name.endsWith("root.xml")
+    })
+  }
+
+  private def addDiscipline(file: File): Try[Unit] = {
+    for {
+      foxml <- loadXml(new URL(file.getAbsolutePath))
+    } yield addToDisciplinesMap(foxml)
+  }
+
+  private def addToDisciplinesMap(xml: Elem)(disciplines: DisciplinesMap): Unit = {
+    val oicode = (xml \\ "OICode").headOption
+    val identifier = (xml \\ "identifier").headOption
+    val title = (xml \\ "title").headOption
+    oicode.foreach(o =>
+      identifier.foreach(i =>
+        title.foreach(t =>
+          disciplines += (o.text -> (i.text, t.text)))))
   }
 
   private def loadXml(url: URL): Try[Elem] = {

@@ -16,19 +16,16 @@
 package nl.knaw.dans.easy.download.components
 
 import java.io.File
-import java.net.URL
 import java.util.UUID
 
 import javax.servlet.http.HttpServletRequest
-import nl.knaw.dans.easy.download.HttpStatusException
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.slf4j.MDC
-import scalaj.http.Http
 
-import scala.util.{ Failure, Success, Try }
-import scala.xml.{ Elem, XML }
+import scala.util.Try
+import scala.xml.Elem
 
-case class Statistics(request: HttpServletRequest, bagId: UUID, fileItem: FileItem, userInfo: Option[User], ddm: Elem, disciplines: Map[String, String]) extends DebugEnhancedLogging {
+case class Statistics(request: HttpServletRequest, bagId: UUID, fileItem: FileItem, userInfo: Option[User], ddm: Elem, disciplines: Map[String, (String, String)]) extends DebugEnhancedLogging {
 
   def logDownload: Try[Unit] = Try {
     val user = userInfo.getOrElse(User("Anonymous", Seq.empty))
@@ -36,10 +33,11 @@ case class Statistics(request: HttpServletRequest, bagId: UUID, fileItem: FileIt
   }
 
   private def getLogEventString(user: User): String = {
-    s"- DOWNLOAD_FILE_REQUEST ; ${getUserId(user)} ; $getUserRoles ; ${getUserGroups(user)} ; $getIpAddress ; " +
-    s"dataset(DATASET_ID: \"$getDatasetId\") ; file(FILE_NAME(0): \"$getFileName\"" +
-    s"discipline(SUB_DISCIPLINE_ID: \"$getSubDiscipline\" ; TOP_DISCIPLINE_LABEL: \"$getTopDisciplineLabel\" ; " +
-    s"SUB_DISCIPLINE_LABEL: \"${getSubDisciplineLabel(getSubDiscipline)} ; TOP_DISCIPLINE_ID: \"$getTopDiscipline\")"
+    val subDiscipline = getSubDiscipline
+    s"- DOWNLOAD_FILE_REQUEST ; ${ getUserId(user) } ; $getUserRoles ; ${ getUserGroups(user) } ; $getIpAddress ; " +
+      s"dataset(DATASET_ID: \"$getDatasetId\") ; file(FILE_NAME(0): \"$getFileName\"" +
+      s"discipline(SUB_DISCIPLINE_ID: \"${ subDiscipline._1 }\" ; TOP_DISCIPLINE_LABEL: \"$getTopDisciplineLabel\" ; " +
+      s"SUB_DISCIPLINE_LABEL: \"${ subDiscipline._2 }\" ; TOP_DISCIPLINE_ID: \"$getTopDiscipline\")"
   }
 
   private def logDownloadEvent(logEventString: String): Unit = {
@@ -58,10 +56,7 @@ case class Statistics(request: HttpServletRequest, bagId: UUID, fileItem: FileIt
   }
 
   private def getUserGroups(user: User): String = {
-    if (user.groups.nonEmpty)
-      user.groups.mkString("(", ",", ")")
-    else
-      "()"
+    user.groups.mkString("(", ",", ")")
   }
 
   private def getIpAddress: String = {
@@ -86,14 +81,17 @@ case class Statistics(request: HttpServletRequest, bagId: UUID, fileItem: FileIt
     new File(fileItem.itemId).getName
   }
 
-  private def getSubDiscipline: String = {
-    val subDiscipline = (ddm \ "audience").headOption
-    if (subDiscipline.isDefined) subDiscipline.get.text
-    else ""
-  }
-
-  private def getSubDisciplineLabel(subDiscipline: String): String = {
-    disciplines.
+  private def getSubDiscipline: (String, String) = {
+    val audience = (ddm \ "audience").headOption
+    if (audience.isDefined) {
+      val easyDiscipline = disciplines.get(audience.get.text)
+      if (easyDiscipline.isDefined) easyDiscipline.get
+      else {
+        logger.error(s"Audience ${ audience.get.text } not found in the Map of Easy disciplines")
+        ("", "")
+      }
+    }
+    else ("", "")
   }
 
   private def getTopDiscipline: String = {

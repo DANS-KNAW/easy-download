@@ -70,8 +70,8 @@ trait EasyDownloadApp extends DebugEnhancedLogging with ApplicationWiring {
 
 object EasyDownloadApp {
 
-  def apply(conf: Configuration, discipl: Map[String, String]): EasyDownloadApp = new EasyDownloadApp {
+  def apply(conf: Configuration, discipl: Map[String, (String, String)]): EasyDownloadApp = new EasyDownloadApp {
     override lazy val configuration: Configuration = conf
-    override lazy val disciplines: Map[String, String] = discipl
+    override lazy val disciplines: Map[String, (String, String)] = discipl
   }
 }
