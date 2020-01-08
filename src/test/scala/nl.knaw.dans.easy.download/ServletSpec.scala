@@ -37,7 +37,7 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
 
   private val uuid = UUID.randomUUID()
   private val naan = "123456"
-  private val datasetXml = XML.loadFile("src/test/resources/bag-store/00/000000000000000000000000000001/bag-revision-1/metadata/dataset.xml")
+  private val datasetXml = XML.loadFile("src/test/resources/dataset-xml/dataset.xml")
   private val app: EasyDownloadApp = new EasyDownloadApp {
     // mocking at a low level to test the chain of error handling
     override val http: HttpWorker = mock[HttpWorker]

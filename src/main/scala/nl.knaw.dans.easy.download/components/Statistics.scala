@@ -32,13 +32,13 @@ case class Statistics(request: HttpServletRequest, bagId: UUID, fileItem: FileIt
     logDownloadEvent(getLogEventString(user))
   }
 
-  private def getLogEventString(user: User): String = {
+  def getLogEventString(user: User): String = {
     val subDiscipline = getSubDiscipline
     s"""- DOWNLOAD_FILE_REQUEST ; ${ getUserId(user) } ; roles: $getUserRoles ; groups: ${ getUserGroups(user) } ; $getIpAddress ;
        | dataset(DATASET_ID: "$getDatasetId") ; file(FILE_NAME(0): "$getFileName") ;
        | discipline(SUB_DISCIPLINE_ID: "${ subDiscipline._1 }" ; TOP_DISCIPLINE_LABEL: "$getTopDisciplineLabel" ;
        | SUB_DISCIPLINE_LABEL: "${ subDiscipline._2 }" ; TOP_DISCIPLINE_ID: "$getTopDiscipline")
-      """.stripMargin.replace("\n", "")
+       |""".stripMargin.replace("\n", "")
   }
 
   private def logDownloadEvent(logEventString: String): Unit = {
@@ -61,9 +61,12 @@ case class Statistics(request: HttpServletRequest, bagId: UUID, fileItem: FileIt
   }
 
   private def getIpAddress: String = {
-    val forwardedFor = request.getHeader("X-FORWARDED-FOR")
-    if (forwardedFor != null && forwardedFor.trim.nonEmpty) forwardedFor
-    else if (request.getRemoteAddr != null) request.getRemoteAddr
+    if (request != null) {
+      val forwardedFor = request.getHeader("X-FORWARDED-FOR")
+      if (forwardedFor != null && forwardedFor.trim.nonEmpty) forwardedFor
+      else if (request.getRemoteAddr != null) request.getRemoteAddr
+      else ""
+    }
     else ""
   }
 
