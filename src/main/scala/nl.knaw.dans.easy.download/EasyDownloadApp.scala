@@ -27,7 +27,7 @@ import org.scalatra.auth.strategy.BasicAuthStrategy.BasicAuthRequest
 import scalaj.http.HttpResponse
 
 import scala.util.{ Failure, Try }
-import scala.xml.{ Elem, Node }
+import scala.xml.Elem
 
 trait EasyDownloadApp extends DebugEnhancedLogging with ApplicationWiring {
 

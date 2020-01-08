@@ -34,11 +34,11 @@ case class Statistics(request: HttpServletRequest, bagId: UUID, fileItem: FileIt
 
   private def getLogEventString(user: User): String = {
     val subDiscipline = getSubDiscipline
-    s"""- DOWNLOAD_FILE_REQUEST ; ${ getUserId(user) } ; $getUserRoles ; ${ getUserGroups(user) } ; $getIpAddress ;
-      |dataset(DATASET_ID: "$getDatasetId") ; file(FILE_NAME(0): "$getFileName"
-      |discipline(SUB_DISCIPLINE_ID: "${ subDiscipline._1 }" ; TOP_DISCIPLINE_LABEL: "$getTopDisciplineLabel" ;
-      |SUB_DISCIPLINE_LABEL: "${ subDiscipline._2 }" ; TOP_DISCIPLINE_ID: "$getTopDiscipline")
-      """.stripMargin
+    s"""- DOWNLOAD_FILE_REQUEST ; ${ getUserId(user) } ; roles: $getUserRoles ; groups: ${ getUserGroups(user) } ; $getIpAddress ;
+       | dataset(DATASET_ID: "$getDatasetId") ; file(FILE_NAME(0): "$getFileName") ;
+       | discipline(SUB_DISCIPLINE_ID: "${ subDiscipline._1 }" ; TOP_DISCIPLINE_LABEL: "$getTopDisciplineLabel" ;
+       | SUB_DISCIPLINE_LABEL: "${ subDiscipline._2 }" ; TOP_DISCIPLINE_ID: "$getTopDiscipline")
+      """.stripMargin.replace("\n", "")
   }
 
   private def logDownloadEvent(logEventString: String): Unit = {
@@ -68,7 +68,7 @@ case class Statistics(request: HttpServletRequest, bagId: UUID, fileItem: FileIt
   }
 
   private def getDatasetId = {
-    val identifier = (ddm \ "identifier").find(_.text.startsWith("easy-dataset"))
+    val identifier = (ddm \ "dcmiMetadata" \ "identifier").find(_.text.startsWith("easy-dataset"))
     if (identifier.isDefined) identifier.get.text
     else datasetIdentifierNotFound
   }
@@ -83,7 +83,7 @@ case class Statistics(request: HttpServletRequest, bagId: UUID, fileItem: FileIt
   }
 
   private def getSubDiscipline: (String, String) = {
-    val audience = (ddm \ "audience").headOption
+    val audience = (ddm \ "profile" \ "audience").headOption
     if (audience.isDefined) {
       val easyDiscipline = disciplines.get(audience.get.text)
       if (easyDiscipline.isDefined) easyDiscipline.get

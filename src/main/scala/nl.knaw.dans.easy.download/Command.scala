@@ -97,9 +97,9 @@ object Command extends App with DebugEnhancedLogging {
   }
 
   private def addToDisciplinesMap(xml: Elem)(disciplines: DisciplinesMap): Unit = {
-    val oicode = (xml \\ "OICode").headOption
-    val identifier = (xml \\ "identifier").headOption
-    val title = (xml \\ "title").headOption
+    val oicode = (xml \\ "discipline-md" \ "OICode").headOption
+    val identifier = (xml \\ "dc" \ "identifier").headOption
+    val title = (xml \\ "dc" \ "title").headOption
     oicode.foreach(o =>
       identifier.foreach(i =>
         title.foreach(t =>
