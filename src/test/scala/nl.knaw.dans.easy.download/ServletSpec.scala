@@ -51,7 +51,6 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
         addProperty("auth-info.url", "http://localhost:20170/")
         addProperty("ark.name-assigning-authority-number", naan)
       })
-    override lazy val disciplines: Map[String, (String, String)] = Map[String, (String, String)]("D30000" -> ("easy-discipline:1", "Humanities"))
   }
   addServlet(new EasyDownloadServlet(app), "/*")
 

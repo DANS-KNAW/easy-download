@@ -32,7 +32,6 @@ trait ApplicationWiring extends HttpWorkerComponent
    * the application configuration
    */
   val configuration: Configuration
-  val disciplines: Map[String, (String, String)]
 
   override val applicationVersion: String = configuration.version
   override val http: HttpWorker = new HttpWorker {}

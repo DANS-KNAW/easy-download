@@ -38,12 +38,11 @@ class StatisticsSpec extends TestSupportFixture with MockFactory {
   private val user_1 = User("user_1", Seq.empty)
   private val user_2 = User("user_2", Seq("a", "b"))
   private val ddm = XML.loadFile("src/test/resources/dataset-xml/dataset.xml")
-  private val disciplines: Map[String, (String, String)] = Map[String, (String, String)]("D30000" -> ("easy-discipline:1", "Humanities"))
-  private val statistics_1 = Statistics(null, bagId, fileItem, Option(user_1), ddm, disciplines)
-  private val statistics_2 = Statistics(null, bagId, fileItem, Option(user_2), ddm, disciplines)
+  private val statistics_1 = Statistics(null, bagId, fileItem, Option(user_1), ddm)
+  private val statistics_2 = Statistics(null, bagId, fileItem, Option(user_2), ddm)
 
   "getLogEventString" should "return correct log event line" in {
-    statistics_1.getLogEventString(user_1)shouldBe "- DOWNLOAD_FILE_REQUEST ; user_1 ; roles: (USER) ; groups: () ;  ; dataset(DATASET_ID: \"easy-dataset:17\") ; file(FILE_NAME(0): \"file.txt\") ; discipline(SUB_DISCIPLINE_ID: \"easy-discipline:1\" ; TOP_DISCIPLINE_LABEL: \"\" ; SUB_DISCIPLINE_LABEL: \"Humanities\" ; TOP_DISCIPLINE_ID: \"easy-discipline:root\")"
+    statistics_1.getLogEventString(user_1) shouldBe "- DOWNLOAD_FILE_REQUEST ; user_1 ; roles: (USER) ; groups: () ;  ; dataset(DATASET_ID: \"easy-dataset:17\") ; file(FILE_NAME(0): \"file.txt\") ; discipline(SUB_DISCIPLINE_ID: \"easy-discipline:1\" ; TOP_DISCIPLINE_LABEL: \"\" ; SUB_DISCIPLINE_LABEL: \"Humanities\" ; TOP_DISCIPLINE_ID: \"easy-discipline:root\")"
   }
 
   it should "return a string containing 'SUB_DISCIPLINE_ID: easy-discipline:1'" in {

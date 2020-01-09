@@ -55,7 +55,7 @@ trait EasyDownloadApp extends DebugEnhancedLogging with ApplicationWiring {
           Failure(new Exception(s"invalid bag, file downloadable but not found: $path"))
       }
       ddm <- getDDM(bagId)
-      _ <- Statistics(request, bagId, fileItem, user, ddm, disciplines).logDownload
+      _ <- Statistics(request, bagId, fileItem, user, ddm).logDownload
     } yield ()
   }
 
@@ -70,8 +70,7 @@ trait EasyDownloadApp extends DebugEnhancedLogging with ApplicationWiring {
 
 object EasyDownloadApp {
 
-  def apply(conf: Configuration, discipl: Map[String, (String, String)]): EasyDownloadApp = new EasyDownloadApp {
+  def apply(conf: Configuration): EasyDownloadApp = new EasyDownloadApp {
     override lazy val configuration: Configuration = conf
-    override lazy val disciplines: Map[String, (String, String)] = discipl
   }
 }

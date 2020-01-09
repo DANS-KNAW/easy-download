@@ -15,19 +15,14 @@
  */
 package nl.knaw.dans.easy.download
 
-import java.io.{ File, FilenameFilter }
-import java.net.URL
 import java.nio.file.Paths
 
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import scalaj.http.Http
 
-import scala.collection.mutable
 import scala.language.reflectiveCalls
 import scala.util.control.NonFatal
-import scala.util.{ Failure, Success, Try }
-import scala.xml.{ Elem, XML }
+import scala.util.{ Failure, Try }
 
 object Command extends App with DebugEnhancedLogging {
   type FeedBackMessage = String
@@ -36,19 +31,12 @@ object Command extends App with DebugEnhancedLogging {
   val commandLine: CommandLineOptions = new CommandLineOptions(args, configuration) {
     verify()
   }
-  val connTimeout: Int = configuration.properties.getInt("bag-store.connection-timeout-ms")
-  val readTimeout: Int = configuration.properties.getInt("bag-store.read-timeout-ms")
-  val easyBasicDigitalObjects = new File("https://github.com/DANS-KNAW/easy-dtap/blob/master/provisioning/roles/easy-fcrepo/files/basic-digital-objects/")
+  val app = EasyDownloadApp(configuration)
 
-  getDisciplines(easyBasicDigitalObjects)
-    .doIfSuccess(discipl => {
-      val app = EasyDownloadApp(configuration, discipl.toMap)
-      runSubcommand(app)
-        .doIfSuccess(msg => println(s"OK: $msg"))
-        .doIfFailure { case e => logger.error(e.getMessage, e) }
-        .doIfFailure { case NonFatal(e) => println(s"FAILED: ${ e.getMessage }") }
-    })
+  runSubcommand(app)
+    .doIfSuccess(msg => println(s"OK: $msg"))
     .doIfFailure { case e => logger.error(e.getMessage, e) }
+    .doIfFailure { case NonFatal(e) => println(s"FAILED: ${ e.getMessage }") }
 
   private def runSubcommand(app: EasyDownloadApp): Try[FeedBackMessage] = {
     commandLine.subcommand
@@ -72,45 +60,5 @@ object Command extends App with DebugEnhancedLogging {
     service.start()
     Thread.currentThread.join()
     "Service terminated normally."
-  }
-
-  private def getDisciplines(digitalObjects: File): Try[DisciplinesMap] = Try {
-    implicit var disciplines: DisciplinesMap = mutable.Map[String, (String, String)]()
-
-    getEasyDisciplineFiles(digitalObjects).foreach(file =>
-      addDiscipline(file)
-        .doIfFailure({ case e => throw new Exception(s"Downloading easy-discipline xml-file ${ file.getName } failed", e) })
-    )
-    disciplines
-  }
-
-  private def getEasyDisciplineFiles(digitalObjects: File): Array[File] = {
-    digitalObjects.listFiles(new FilenameFilter {
-      def accept(dir: File, name: String): Boolean = name.startsWith("easy-discipline:") && !name.endsWith("root.xml")
-    })
-  }
-
-  private def addDiscipline(file: File): Try[Unit] = {
-    for {
-      foxml <- loadXml(new URL(file.getAbsolutePath))
-    } yield addToDisciplinesMap(foxml) _
-  }
-
-  private def addToDisciplinesMap(xml: Elem)(disciplines: DisciplinesMap): Unit = {
-    val oicode = (xml \\ "discipline-md" \ "OICode").headOption
-    val identifier = (xml \\ "dc" \ "identifier").headOption
-    val title = (xml \\ "dc" \ "title").headOption
-    oicode.foreach(o =>
-      identifier.foreach(i =>
-        title.foreach(t =>
-          disciplines += (o.text -> (i.text, t.text)))))
-  }
-
-  private def loadXml(url: URL): Try[Elem] = {
-    for {
-      response <- Try { Http(url.toString).timeout(connTimeout, readTimeout).asString }
-      _ <- if (response.isSuccess) Success(())
-           else Failure(HttpStatusException(url.toString, response))
-    } yield XML.loadString(response.body)
   }
 }

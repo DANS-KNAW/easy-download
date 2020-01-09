@@ -25,7 +25,9 @@ import org.slf4j.MDC
 import scala.util.Try
 import scala.xml.Elem
 
-case class Statistics(request: HttpServletRequest, bagId: UUID, fileItem: FileItem, userInfo: Option[User], ddm: Elem, disciplines: Map[String, (String, String)]) extends DebugEnhancedLogging {
+case class Statistics(request: HttpServletRequest, bagId: UUID, fileItem: FileItem, userInfo: Option[User], ddm: Elem) extends DebugEnhancedLogging {
+
+  private val disciplines = EasyDisciplines.disciplines
 
   def logDownload: Try[Unit] = Try {
     val user = userInfo.getOrElse(User("Anonymous", Seq.empty))
