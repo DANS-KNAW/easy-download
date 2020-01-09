@@ -12,6 +12,7 @@ xsi:schemaLocation="http://easy.dans.knaw.nl/schemas/md/ddm/ https://easy.dans.k
     <ddm:created>2017-05-29</ddm:created>
     <ddm:available>1992-07-30</ddm:available>
     <ddm:audience>D30000</ddm:audience>
+    <ddm:audience>D32000</ddm:audience>
     <ddm:accessRights>OPEN_ACCESS</ddm:accessRights>
   </ddm:profile>
   <ddm:dcmiMetadata>
