@@ -28,12 +28,12 @@ import scala.xml.Elem
 
 case class Statistics(request: HttpServletRequest, bagId: UUID, fileItem: FileItem, userInfo: Option[User], ddm: Elem) extends DebugEnhancedLogging {
 
-  private val loggerStatistics = Logger(LoggerFactory.getLogger("easy-statistics"))
+  private val statisticsLogger = Logger(LoggerFactory.getLogger("easy-statistics"))
   private val disciplines = EasyDisciplines.disciplines
 
   def logDownload: Try[Unit] = Try {
     val user = userInfo.getOrElse(User("Anonymous", Seq.empty))
-    loggerStatistics.info(getLogEventString(user))
+    statisticsLogger.info(getLogEventString(user))
   }
 
   def getLogEventString(user: User): String = {
