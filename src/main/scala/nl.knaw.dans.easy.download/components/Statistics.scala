@@ -35,11 +35,11 @@ case class Statistics(request: HttpServletRequest, bagId: UUID, fileItem: FileIt
   }
 
   def getLogEventString(user: User): String = {
-    val subDiscipline = getSubDiscipline
+    val (subDiscipline, subDisciplineLabel) = getSubDiscipline
     s"""- DOWNLOAD_FILE_REQUEST ; ${ getUserId(user) } ; roles: $getUserRoles ; groups: ${ getUserGroups(user) } ; $getIpAddress ;
        | dataset(DATASET_ID: "$getDatasetId") ; file(FILE_NAME(0): "$getFileName") ;
-       | discipline(SUB_DISCIPLINE_ID: "${ subDiscipline._1 }" ; TOP_DISCIPLINE_LABEL: "$getTopDisciplineLabel" ;
-       | SUB_DISCIPLINE_LABEL: "${ subDiscipline._2 }" ; TOP_DISCIPLINE_ID: "$getTopDiscipline")
+       | discipline(SUB_DISCIPLINE_ID: "${ subDiscipline }" ; TOP_DISCIPLINE_LABEL: "$getTopDisciplineLabel" ;
+       | SUB_DISCIPLINE_LABEL: "${ subDisciplineLabel }" ; TOP_DISCIPLINE_ID: "$getTopDiscipline")
        |""".stripMargin.replace("\n", "")
   }
 
