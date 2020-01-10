@@ -18,20 +18,22 @@ package nl.knaw.dans.easy.download.components
 import java.io.File
 import java.util.UUID
 
+import com.typesafe.scalalogging.Logger
 import javax.servlet.http.HttpServletRequest
+import org.slf4j.LoggerFactory
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import org.slf4j.MDC
 
 import scala.util.Try
 import scala.xml.Elem
 
 case class Statistics(request: HttpServletRequest, bagId: UUID, fileItem: FileItem, userInfo: Option[User], ddm: Elem) extends DebugEnhancedLogging {
 
+  private val loggerStatistics = Logger(LoggerFactory.getLogger("easy-statistics"))
   private val disciplines = EasyDisciplines.disciplines
 
   def logDownload: Try[Unit] = Try {
     val user = userInfo.getOrElse(User("Anonymous", Seq.empty))
-    logDownloadEvent(getLogEventString(user))
+    loggerStatistics.info(getLogEventString(user))
   }
 
   def getLogEventString(user: User): String = {
@@ -41,13 +43,6 @@ case class Statistics(request: HttpServletRequest, bagId: UUID, fileItem: FileIt
        | discipline(SUB_DISCIPLINE_ID: "${ subDiscipline }" ; TOP_DISCIPLINE_LABEL: "$getTopDisciplineLabel" ;
        | SUB_DISCIPLINE_LABEL: "${ subDisciplineLabel }" ; TOP_DISCIPLINE_ID: "$getTopDiscipline")
        |""".stripMargin.replace("\n", "")
-  }
-
-  private def logDownloadEvent(logEventString: String): Unit = {
-    // This causes logger to write into easy-statistics log-file
-    MDC.put("logFile", "statistics")
-    logger.info(logEventString)
-    MDC.remove("logFile")
   }
 
   private def getUserId(user: User): String = {
