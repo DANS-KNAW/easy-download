@@ -55,7 +55,7 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
   addServlet(new EasyDownloadServlet(app), "/*")
 
   private def expectDownloadStream(uuid: UUID, path: Path, n: Int = 1) = {
-    (app.bagStore.copyStream(_: UUID, _: Path)) expects(*, *) repeat n
+    (app.bagStore.copyStream(_: UUID, _: Path)) expects (*, *) repeat n
   }
 
   private def expectLoadDdm(uuid: UUID) = {

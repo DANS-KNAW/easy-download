@@ -18,15 +18,16 @@ package nl.knaw.dans.easy.download
 import java.io.OutputStream
 import java.nio.file.Path
 import java.util.UUID
-
 import javax.servlet.http.HttpServletRequest
+
 import nl.knaw.dans.easy.download.components.{ FileItem, Statistics, User }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+
 import org.eclipse.jetty.http.HttpStatus.NOT_FOUND_404
 import org.scalatra.auth.strategy.BasicAuthStrategy.BasicAuthRequest
-import scalaj.http.HttpResponse
 
 import scala.util.{ Failure, Try }
+import scalaj.http.HttpResponse
 import scala.xml.Elem
 
 trait EasyDownloadApp extends DebugEnhancedLogging with ApplicationWiring {

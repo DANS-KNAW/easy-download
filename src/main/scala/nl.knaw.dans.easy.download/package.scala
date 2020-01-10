@@ -18,15 +18,12 @@ package nl.knaw.dans.easy
 import java.io.OutputStream
 
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-
-import scala.collection.mutable
 import scalaj.http.HttpResponse
 
 package object download extends DebugEnhancedLogging {
 
   type FeedBackMessage = String
   type OutputStreamProvider = () => OutputStream
-  type DisciplinesMap = mutable.Map[String, (String, String)]
 
   case class HttpStatusException(msg: String, response: HttpResponse[String])
     extends Exception(s"$msg - ${ response.statusLine }, details: ${ response.body }")

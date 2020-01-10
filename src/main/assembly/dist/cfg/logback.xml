@@ -11,8 +11,8 @@
 			<pattern>[%date{ISO8601}] %-5level %msg%n</pattern>
 		</encoder>
 	</appender>
-	<root level="info">
-		<appender-ref ref="FILE"/>
+	<root level="warn">
+		<appender-ref ref="FILE" />
 	</root>
-	<logger name="nl.knaw.dans.easy" level="info"/>
+	<logger name="nl.knaw.dans.easy" level="info" />
 </configuration>
