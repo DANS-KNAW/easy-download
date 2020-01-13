@@ -83,14 +83,14 @@ case class Statistics(request: HttpServletRequest, bagId: UUID, fileItem: FileIt
 
   private def getSubDiscipline: (String, String) = {
     val audience = (ddm \ "profile" \ "audience").headOption
-    if (audience.isDefined) {
-      val easyDiscipline = disciplines.get(audience.get.text)
-      easyDiscipline.getOrElse({
-        logger.error(s"Audience ${ audience.get.text } not found in the Map of Easy disciplines")
-        ("", "")
-      })
-    }
+    if (audience.isDefined)
+      disciplines.getOrElse(audience.get.text, audienceNotFound(audience.get.text))
     else ("", "")
+  }
+
+  private def audienceNotFound(audience: String): (String, String) = {
+    logger.error(s"Audience $audience not found in the Map of Easy disciplines")
+    ("", "")
   }
 
   private def getTopDiscipline: String = {
