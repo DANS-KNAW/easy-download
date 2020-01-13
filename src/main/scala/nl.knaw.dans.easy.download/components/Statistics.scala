@@ -20,8 +20,8 @@ import java.util.UUID
 
 import com.typesafe.scalalogging.Logger
 import javax.servlet.http.HttpServletRequest
-import org.slf4j.LoggerFactory
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import org.slf4j.LoggerFactory
 
 import scala.util.Try
 import scala.xml.Elem
@@ -69,12 +69,11 @@ case class Statistics(request: HttpServletRequest, bagId: UUID, fileItem: FileIt
 
   private def getDatasetId = {
     val identifier = (ddm \ "dcmiMetadata" \ "identifier").find(_.text.startsWith("easy-dataset"))
-    if (identifier.isDefined) identifier.get.text
-    else datasetIdentifierNotFound
+    identifier.map(_.text).getOrElse(datasetIdentifierNotFound)
   }
 
   private def datasetIdentifierNotFound: String = {
-    logger.error(s"Easy dataset-id <ddm:identifier> not found in $bagId/dataset.xml")
+    logger.warn(s"Easy dataset-id <ddm:identifier> not found in $bagId/dataset.xml")
     "-"
   }
 
@@ -86,11 +85,10 @@ case class Statistics(request: HttpServletRequest, bagId: UUID, fileItem: FileIt
     val audience = (ddm \ "profile" \ "audience").headOption
     if (audience.isDefined) {
       val easyDiscipline = disciplines.get(audience.get.text)
-      if (easyDiscipline.isDefined) easyDiscipline.get
-      else {
+      easyDiscipline.getOrElse({
         logger.error(s"Audience ${ audience.get.text } not found in the Map of Easy disciplines")
         ("", "")
-      }
+      })
     }
     else ("", "")
   }

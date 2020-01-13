@@ -48,7 +48,7 @@ case class FileItem(itemId: String,
     else if (accessibleTo == KNOWN)
            if (user.isDefined) Success(())
            else Failure(NotAccessibleException(s"Please login to download: $itemId"))
-    else Failure(NotAccessibleException(s"Download not allowed of: $itemId\n")) // might require group/permission
+    else Failure(NotAccessibleException(s"Download not allowed of: $itemId")) // might require group/permission
   }
 
   def isOpenAccess: Boolean = {

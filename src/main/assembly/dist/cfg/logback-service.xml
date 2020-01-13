@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <configuration scan="true" scanPeriod="1 minute">
-    <appender name="FILE-DOWNLOAD"
+    <appender name="FILE"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>/var/opt/dans.knaw.nl/log/easy-download/easy-download.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -31,7 +31,7 @@
         <appender-ref ref="JOURNAL" />
     </root>
     <logger name="nl.knaw.dans.easy" level="info">
-        <appender-ref ref="FILE-DOWNLOAD" />
+        <appender-ref ref="FILE" />
     </logger>
     <logger name="easy-statistics" level="info">
         <appender-ref ref="FILE-STATISTICS" />

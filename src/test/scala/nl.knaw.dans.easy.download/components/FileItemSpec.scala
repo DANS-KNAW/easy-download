@@ -88,7 +88,7 @@ class FileItemSpec extends TestSupportFixture {
       licenseKey = "http://opensource.org/licenses/MIT",
       licenseTitle = "MIT.txt",
     ).availableFor(Some(User("somebody"))) should matchPattern {
-      case Failure(NotAccessibleException("Download not allowed of: uuid/data/file.txt\n")) =>
+      case Failure(NotAccessibleException("Download not allowed of: uuid/data/file.txt")) =>
     }
   }
 

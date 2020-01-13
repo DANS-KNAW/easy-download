@@ -46,7 +46,7 @@ trait BagStoreComponent extends DebugEnhancedLogging {
     }
 
     def loadDDM(bagId: UUID): Try[Elem] = {
-      logger.info(s"[$bagId] retrieving ddm.xml")
+      logger.info(s"[$bagId] retrieving dataset.xml")
       toURL(bagId, "metadata/dataset.xml").flatMap(loadXml)
     }
 
