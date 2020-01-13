@@ -12,7 +12,7 @@
         </encoder>
     </appender>
     <appender name="FILE-STATISTICS" class="ch.qos.logback.core.FileAppender">
-        <file>data/easy-statistics.%d{yyyy-MM-dd}.log</file>
+        <file>data/easy-statistics.log</file>
         <encoder>
             <pattern>%date{ISO8601} %msg%n</pattern>
         </encoder>
