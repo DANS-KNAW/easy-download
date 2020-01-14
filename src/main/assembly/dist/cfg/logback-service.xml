@@ -13,7 +13,6 @@
     </appender>
     <appender name="FILE-STATISTICS"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>/var/opt/dans.knaw.nl/log/easy-download/easy-statistics.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>/var/opt/dans.knaw.nl/log/easy-download/easy-statistics.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
