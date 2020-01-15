@@ -47,15 +47,7 @@ trait BagStoreComponent extends DebugEnhancedLogging {
 
     def loadDDM(bagId: UUID): Try[Elem] = {
       logger.info(s"[$bagId] retrieving dataset.xml")
-      toURL(bagId, "metadata/dataset.xml").flatMap(loadXml)
-    }
-
-    private def loadXml(url: URL): Try[Elem] = {
-      for {
-        response <- Try { Http(url.toString).timeout(connTimeout, readTimeout).asString }
-        _ <- if (response.isSuccess) Success(())
-             else Failure(HttpStatusException(url.toString, response))
-      } yield XML.loadString(response.body)
+      toURL(bagId, "metadata/dataset.xml").flatMap(http.loadXml(connTimeout, readTimeout))
     }
 
     private def toURL(bagId: UUID, path: String): Try[URL] = Try {
