@@ -28,7 +28,8 @@ import org.scalatra.test.EmbeddedJettyContainer
 import org.scalatra.test.scalatest.ScalatraSuite
 
 import scala.language.postfixOps
-import scala.util.{ Failure, Success }
+import scala.util.{ Failure, Success, Try }
+import scala.xml.XML
 
 class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
   with ScalatraSuite
@@ -36,21 +37,29 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
 
   private val uuid = UUID.randomUUID()
   private val naan = "123456"
+  private val datasetXml = XML.loadFile("src/test/resources/dataset-xml/dataset.xml")
   private val app: EasyDownloadApp = new EasyDownloadApp {
     // mocking at a low level to test the chain of error handling
     override val http: HttpWorker = mock[HttpWorker]
+    override val bagStore: BagStore = mock[BagStore]
     override val authentication: Authentication = mock[Authentication]
     override lazy val configuration: Configuration = new Configuration("1.0.0",
       new PropertiesConfiguration() {
         addProperty("bag-store.url", "http://localhost:20110/")
+        addProperty("bag-store.connection-timeout-ms", 600000)
+        addProperty("bag-store.read-timeout-ms", 600000)
         addProperty("auth-info.url", "http://localhost:20170/")
         addProperty("ark.name-assigning-authority-number", naan)
       })
   }
   addServlet(new EasyDownloadServlet(app), "/*")
 
-  private def expectDownloadStream(path: Path, n: Int = 1) = {
-    (app.http.copyHttpStream(_: URI)) expects new URI(s"http://localhost:20110/bags/$uuid/${ path.escapePath }") repeat n
+  private def expectDownloadStream(uuid: UUID, path: Path, n: Int = 1) = {
+    (app.bagStore.copyStream(_: UUID, _: Path)) expects (*, *) repeat n
+  }
+
+  private def expectLoadDdm(uuid: UUID) = {
+    (app.bagStore.loadDDM(_: UUID)) expects *
   }
 
   private def expectAuthorisation(path: Path, n: Int = 1) = {
@@ -71,10 +80,11 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
   s"get ark:/$naan/:uuid/*" should "return file" in {
     val path = Paths.get("data/some.file")
     expectAuthentication(0)
-    expectDownloadStream(path) returning (os => {
+    expectDownloadStream(uuid, path) returning (os => {
       os().write(s"content of $uuid/$path ")
       Success(())
     })
+    expectLoadDdm(uuid) returning Try(datasetXml)
     expectAuthorisation(path) returning Success(
       s"""{
          |  "itemId":"$uuid/$path",
@@ -95,10 +105,11 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
   it should "return file when it is Open Access even when the user is not authenticated" in {
     val path = Paths.get("data/some.file")
     expectAuthentication(0)
-    expectDownloadStream(path) returning (os => {
+    expectDownloadStream(uuid, path) returning (os => {
       os().write(s"content of $uuid/$path ")
       Success(())
     })
+    expectLoadDdm(uuid) returning Try(datasetXml)
     expectAuthorisation(path) returning Success(
       s"""{
          |  "itemId":"$uuid/$path",
@@ -119,7 +130,7 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
   it should "return UN_AUTHORIZED error when the file is not Open Access and when the user is not authenticated" in {
     val path = Paths.get("data/some.file")
     expectAuthentication() returning Failure(InvalidUserPasswordException("user", new Exception("invalid password", new Throwable)))
-    expectDownloadStream(path, 0)
+    expectDownloadStream(uuid, path, 0)
     expectAuthorisation(path) returning Success(
       s"""{
          |  "itemId":"$uuid/$path",
@@ -139,10 +150,11 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
   it should "return in header a Link with the license key and license title received from Authorization" in {
     val path = Paths.get("data/some.file")
     expectAuthentication(0)
-    expectDownloadStream(path) returning (os => {
+    expectDownloadStream(uuid, path) returning (os => {
       os().write(s"content of $uuid/$path ")
       Success(())
     })
+    expectLoadDdm(uuid) returning Try(datasetXml)
     expectAuthorisation(path) returning Success(
       s"""{
          |  "itemId":"$uuid/$path",
@@ -234,10 +246,11 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
     val uuidWithoutHyphens = uuid.toString.replace("-", "")
     val path = Paths.get("data/some.file")
     expectAuthentication(0)
-    expectDownloadStream(path) returning (os => {
+    expectDownloadStream(uuid, path) returning (os => {
       os().write(s"content of $uuid/$path ")
       Success(())
     })
+    expectLoadDdm(uuid) returning Try(datasetXml)
     expectAuthorisation(path) returning Success(
       s"""{
          |  "itemId":"$uuid/$path",

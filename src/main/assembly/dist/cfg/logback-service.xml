@@ -11,14 +11,29 @@
             <pattern>[%date{ISO8601}] %-5level %msg%n</pattern>
         </encoder>
     </appender>
+    <appender name="FILE-STATISTICS"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--  no file property given; the effect is that the file will be named according to fileNamePattern (including the date) -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>/var/opt/dans.knaw.nl/log/easy-download/easy-statistics.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%date{ISO8601} %msg%n</pattern>
+        </encoder>
+    </appender>
     <appender name="JOURNAL" class="org.gnieh.logback.SystemdJournalAppender">
         <logStackTrace>true</logStackTrace>
         <logLoggerName>true</logLoggerName>
         <syslogIdentifier>easy-download</syslogIdentifier>
     </appender>
     <root level="warn">
-        <appender-ref ref="FILE"/>
         <appender-ref ref="JOURNAL" />
     </root>
-    <logger name="nl.knaw.dans.easy" level="info" />
+    <logger name="nl.knaw.dans.easy" level="info">
+        <appender-ref ref="FILE" />
+    </logger>
+    <logger name="easy-statistics" level="info">
+        <appender-ref ref="FILE-STATISTICS" />
+    </logger>
 </configuration>

@@ -18,24 +18,31 @@ package nl.knaw.dans.easy.download
 import java.io.OutputStream
 import java.nio.file.Path
 import java.util.UUID
+import javax.servlet.http.HttpServletRequest
 
-import nl.knaw.dans.easy.download.components.{ FileItem, User }
+import nl.knaw.dans.easy.download.components.{ FileItem, Statistics, User }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+
 import org.eclipse.jetty.http.HttpStatus.NOT_FOUND_404
 import org.scalatra.auth.strategy.BasicAuthStrategy.BasicAuthRequest
 
 import scala.util.{ Failure, Try }
 import scalaj.http.HttpResponse
+import scala.xml.Elem
 
 trait EasyDownloadApp extends DebugEnhancedLogging with ApplicationWiring {
 
   def authenticate(authRequest: BasicAuthRequest): Try[Option[User]] = authentication.authenticate(authRequest)
 
   /**
-   * @param bagId uuid of a bag
-   * @param path  path of an item in files.xml of the bag
+   * @param request  Http request
+   * @param bagId    uuid of a bag
+   * @param path     path of an item in files.xml of the bag
+   * @param fileItem Fileitem object
+   * @param user     User object
    */
-  def downloadFile(bagId: UUID,
+  def downloadFile(request: HttpServletRequest,
+                   bagId: UUID,
                    path: Path,
                    fileItem: Try[FileItem],
                    user: Option[User],
@@ -48,11 +55,17 @@ trait EasyDownloadApp extends DebugEnhancedLogging with ApplicationWiring {
         case HttpStatusException(_, HttpResponse(_, NOT_FOUND_404, _)) =>
           Failure(new Exception(s"invalid bag, file downloadable but not found: $path"))
       }
+      ddm <- getDDM(bagId)
+      _ <- Statistics(request, bagId, fileItem, user, ddm).logDownload
     } yield ()
   }
 
   def getFileItem(bagId: UUID, path: Path): Try[FileItem] = {
-      authorisation.getFileItem(bagId, path)
+    authorisation.getFileItem(bagId, path)
+  }
+
+  def getDDM(bagId: UUID): Try[Elem] = {
+    bagStore.loadDDM(bagId)
   }
 }
 

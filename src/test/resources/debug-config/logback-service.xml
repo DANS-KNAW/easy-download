@@ -11,9 +11,19 @@
             <pattern>[%date{ISO8601}] %-5level %msg%n</pattern>
         </encoder>
     </appender>
+    <appender name="FILE-STATISTICS" class="ch.qos.logback.core.FileAppender">
+        <file>data/easy-statistics.log</file>
+        <encoder>
+            <pattern>%date{ISO8601} %msg%n</pattern>
+        </encoder>
+    </appender>
     <root level="warn">
-        <appender-ref ref="FILE" />
         <appender-ref ref="STDOUT" />
     </root>
-    <logger name="nl.knaw.dans.easy" level="trace" />
+    <logger name="nl.knaw.dans.easy" level="trace">
+        <appender-ref ref="FILE" />
+    </logger>
+    <logger name="easy-statistics" level="info">
+        <appender-ref ref="FILE-STATISTICS" />
+    </logger>
 </configuration>

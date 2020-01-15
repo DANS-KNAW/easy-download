@@ -15,7 +15,7 @@
  */
 package nl.knaw.dans.easy.download.components
 
-import java.net.URI
+import java.net.{ URI, URL }
 
 import nl.knaw.dans.easy.download.{ HttpStatusException, OutputStreamProvider }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
@@ -24,6 +24,7 @@ import org.eclipse.jetty.http.HttpStatus.OK_200
 import scalaj.http.HttpResponse
 
 import scala.util.{ Failure, Success, Try }
+import scala.xml.{ Elem, XML }
 
 trait HttpWorkerComponent extends DebugEnhancedLogging {
   this: HttpContext =>
@@ -49,6 +50,14 @@ trait HttpWorkerComponent extends DebugEnhancedLogging {
 
     private def failed(uri: URI, response: HttpResponse[_]) = {
       Failure(HttpStatusException(s"Could not download $uri", HttpResponse(response.statusLine, response.code, response.headers)))
+    }
+
+    def loadXml(connTimeout: Int, readTimeout: Int)(url: URL): Try[Elem] = {
+      for {
+        response <- Try { Http(url.toString).timeout(connTimeout, readTimeout).asString }
+        _ <- if (response.isSuccess) Success(())
+             else Failure(HttpStatusException(url.toString, response))
+      } yield XML.loadString(response.body)
     }
   }
 }

@@ -18,7 +18,6 @@ package nl.knaw.dans.easy
 import java.io.OutputStream
 
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-
 import scalaj.http.HttpResponse
 
 package object download extends DebugEnhancedLogging {
@@ -41,6 +40,7 @@ package object download extends DebugEnhancedLogging {
     extends Exception(cause.getMessage, cause) {
     logger.info(cause.getMessage)
   }
+
   case class AuthenticationTypeNotSupportedException(cause: Throwable)
     extends Exception(cause.getMessage, cause) {
     logger.info(cause.getMessage)
