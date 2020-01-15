@@ -13,7 +13,7 @@
     </appender>
     <appender name="FILE-STATISTICS"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
-        # no file property given; the effect is that the file will be named according to fileNamePattern (including the date)
+        <!--  no file property given; the effect is that the file will be named according to fileNamePattern (including the date) -->
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>/var/opt/dans.knaw.nl/log/easy-download/easy-statistics.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
