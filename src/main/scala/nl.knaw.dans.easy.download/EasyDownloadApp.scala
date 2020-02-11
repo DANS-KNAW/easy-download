@@ -61,7 +61,10 @@ trait EasyDownloadApp extends DebugEnhancedLogging with ApplicationWiring {
   }
 
   def getFileItem(bagId: UUID, path: Path): Try[FileItem] = {
-    authorisation.getFileItem(bagId, path)
+    authorisation.getFileItem(bagId, path).recoverWith {
+      case t if (t.getMessage contains ("Connection refused")) =>
+        Failure(AuthenticationNotAvailableException(t))
+    }
   }
 
   def getDDM(bagId: UUID): Try[Elem] = {
