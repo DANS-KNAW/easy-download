@@ -41,6 +41,11 @@ package object download extends DebugEnhancedLogging {
     logger.info(cause.getMessage)
   }
 
+  case class ServiceNotAvailableException(cause: Throwable)
+    extends Exception(cause.getMessage, cause) {
+    logger.info(cause.getMessage)
+  }
+
   case class AuthenticationTypeNotSupportedException(cause: Throwable)
     extends Exception(cause.getMessage, cause) {
     logger.info(cause.getMessage)

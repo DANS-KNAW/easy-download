@@ -107,6 +107,7 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet
       case Failure(NotAccessibleException(message)) => Forbidden(message)
       case Failure(_: FileNotFoundException) => NotFound(s"not found: $uuid/$path") // in fact: not visible
       case Failure(AuthenticationNotAvailableException(_)) => ServiceUnavailable("Authentication service not available")
+      case Failure(ServiceNotAvailableException(_)) => ServiceUnavailable("Bag-store service not available")
       case Failure(t) =>
         logger.error(t.getMessage, t)
         InternalServerError("not expected exception")

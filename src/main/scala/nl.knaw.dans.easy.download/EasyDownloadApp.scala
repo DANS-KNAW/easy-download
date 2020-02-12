@@ -65,6 +65,8 @@ trait EasyDownloadApp extends DebugEnhancedLogging with ApplicationWiring {
     authorisation.getFileItem(bagId, path).recoverWith {
       case t: ConnectException =>
         Failure(AuthenticationNotAvailableException(t))
+      case t if (t.getMessage contains("500 Server Error")) =>
+        Failure(ServiceNotAvailableException(t))
     }
   }
 
