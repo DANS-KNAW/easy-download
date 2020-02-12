@@ -16,18 +16,19 @@
 package nl.knaw.dans.easy.download
 
 import java.io.OutputStream
+import java.net.ConnectException
 import java.nio.file.Path
 import java.util.UUID
 import javax.servlet.http.HttpServletRequest
 
 import nl.knaw.dans.easy.download.components.{ FileItem, Statistics, User }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-
 import org.eclipse.jetty.http.HttpStatus.NOT_FOUND_404
 import org.scalatra.auth.strategy.BasicAuthStrategy.BasicAuthRequest
 
 import scala.util.{ Failure, Try }
 import scalaj.http.HttpResponse
+
 import scala.xml.Elem
 
 trait EasyDownloadApp extends DebugEnhancedLogging with ApplicationWiring {
@@ -62,7 +63,7 @@ trait EasyDownloadApp extends DebugEnhancedLogging with ApplicationWiring {
 
   def getFileItem(bagId: UUID, path: Path): Try[FileItem] = {
     authorisation.getFileItem(bagId, path).recoverWith {
-      case t if (t.getMessage contains ("Connection refused")) =>
+      case t: ConnectException =>
         Failure(AuthenticationNotAvailableException(t))
     }
   }
