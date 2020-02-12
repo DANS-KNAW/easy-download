@@ -36,6 +36,16 @@ package object download extends DebugEnhancedLogging {
     logger.info(s"invalid credentials for $userName: ${ cause.getMessage }")
   }
 
+  case class InvalidNameAuthenticationException(cause: Throwable)
+    extends Exception(cause.getMessage, cause) {
+    logger.info(cause.getMessage)
+  }
+
+  case class NoPasswordAuthenticationException(cause: Throwable)
+    extends Exception(cause.getMessage, cause) {
+    logger.info(cause.getMessage)
+  }
+
   case class AuthenticationNotAvailableException(cause: Throwable)
     extends Exception(cause.getMessage, cause) {
     logger.info(cause.getMessage)
