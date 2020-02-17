@@ -83,6 +83,8 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet
     getUser(authRequest, userName, fileItem.toOption) match {
       case Success(user) => respond(uuid, path, fileItem, app.downloadFile(request, uuid, path, fileItem, user, () => response.outputStream))
       case Failure(InvalidUserPasswordException(_, _)) => Unauthorized()
+      case Failure(InvalidNameAuthenticationException(_)) => Unauthorized()
+      case Failure(NoPasswordAuthenticationException(_)) => Unauthorized()
       case Failure(AuthenticationNotAvailableException(_)) => ServiceUnavailable("Authentication service not available, try anonymous download")
       case Failure(AuthenticationTypeNotSupportedException(_)) => BadRequest("Only anonymous download or basic authentication supported")
       case Failure(t) =>

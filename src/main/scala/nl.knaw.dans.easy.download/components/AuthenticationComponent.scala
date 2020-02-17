@@ -16,12 +16,12 @@
 package nl.knaw.dans.easy.download.components
 
 import java.util
-import javax.naming.{ AuthenticationException, Context }
+
+import javax.naming.{ AuthenticationException, Context, InvalidNameException, OperationNotSupportedException }
 import javax.naming.directory.SearchControls.SUBTREE_SCOPE
 import javax.naming.directory.{ Attribute, SearchControls, SearchResult }
 import javax.naming.ldap.{ InitialLdapContext, LdapContext }
-
-import nl.knaw.dans.easy.download.{ AuthenticationNotAvailableException, AuthenticationTypeNotSupportedException, InvalidUserPasswordException }
+import nl.knaw.dans.easy.download.{ AuthenticationNotAvailableException, AuthenticationTypeNotSupportedException, InvalidNameAuthenticationException, InvalidUserPasswordException, NoPasswordAuthenticationException }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.scalatra.auth.strategy.BasicAuthStrategy.BasicAuthRequest
 import resource.managed
@@ -69,6 +69,8 @@ trait AuthenticationComponent extends DebugEnhancedLogging {
           .tried
       }.recoverWith {
         case t: AuthenticationException => Failure(InvalidUserPasswordException(userName, new Exception("invalid password", t)))
+        case t: InvalidNameException => Failure(InvalidNameAuthenticationException(t))
+        case t: OperationNotSupportedException if (password.isEmpty) => Failure(NoPasswordAuthenticationException(t))
         case t => Failure(AuthenticationNotAvailableException(t))
       }
 
