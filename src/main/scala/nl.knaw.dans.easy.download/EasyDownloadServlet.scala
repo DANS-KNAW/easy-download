@@ -20,6 +20,7 @@ import java.nio.file.{ Path, Paths }
 import java.util.UUID
 
 import nl.knaw.dans.easy.download.components.{ FileItem, User }
+import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import nl.knaw.dans.lib.logging.servlet._
 import nl.knaw.dans.lib.string._
@@ -76,50 +77,55 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet
   }
 
   private def download(authRequest: BasicAuthRequest, userName: String, uuid: UUID, path: Path) = {
-    // When fileItem is a Failure, it is transformed into a None for getUser(...); in that case authentication is guaranteed to be performed.
-    // If authentication succeeds, the original error caused by fileItem surfaces from app.downloadFile(...);
-    // if authentication fails, priority is given to that error above the error in fileItem.
-    val fileItem = app.getFileItem(uuid, path)
-    getUser(authRequest, userName, fileItem.toOption) match {
-      case Success(user) => respond(uuid, path, fileItem, app.downloadFile(request, uuid, path, fileItem, user, () => response.outputStream))
-      case Failure(InvalidUserPasswordException(_, _)) => Unauthorized()
-      case Failure(InvalidNameAuthenticationException(_)) => Unauthorized()
-      case Failure(NoPasswordAuthenticationException(_)) => Unauthorized()
-      case Failure(AuthenticationNotAvailableException(_)) => ServiceUnavailable("Authentication service not available, try anonymous download")
-      case Failure(AuthenticationTypeNotSupportedException(_)) => BadRequest("Only anonymous download or basic authentication supported")
-      case Failure(t) =>
-        logger.error(s"not expected exception", t)
-        InternalServerError("not expected exception")
+    def downloadFile(item: FileItem)(user: Option[User]): ActionResult = {
+      app.downloadFile(request, uuid, path, item, user, () => response.outputStream)
+        .map(_ => sendOkResponse(item))
+        .getOrRecover(recoverAuthInfoOrDownload(uuid, path))
+    }
+
+    app.getFileItem(uuid, path) match {
+      case Success(item) if item.isOpenAccess =>
+        downloadFile(item)(Some(User(userName)))
+      case Success(item) =>
+        app.authenticate(authRequest)
+          .map(downloadFile(item))
+          .getOrRecover(recoverAuthenticate)
+      case Failure(authInfoException) =>
+        app.authenticate(authRequest)
+          .map(_ => recoverAuthInfoOrDownload(uuid, path)(authInfoException))
+          .getOrRecover(recoverAuthenticate)
     }
   }
 
-  private def getUser(authRequest: BasicAuthRequest, userName: String, fileItem: Option[FileItem]): Try[Option[User]] = {
-    if (fileItem.nonEmpty && fileItem.get.isOpenAccess)
-      Success(Some(User(userName, Seq.empty)))
-    else
-      app.authenticate(authRequest)
+  private def recoverAuthenticate(e: Throwable): ActionResult = e match {
+    case InvalidUserPasswordException(_, _) => Unauthorized()
+    case InvalidNameAuthenticationException(_) => Unauthorized()
+    case NoPasswordAuthenticationException(_) => Unauthorized()
+    case AuthenticationNotAvailableException(_) => ServiceUnavailable("Authentication service not available, try anonymous download")
+    case AuthenticationTypeNotSupportedException(_) => BadRequest("Only anonymous download or basic authentication supported")
+    case t =>
+      logger.error(s"not expected exception", t)
+      InternalServerError("not expected exception")
   }
 
-  private def respond(uuid: UUID, path: Path, fileItem: Try[FileItem], copyResult: Try[Unit]) = {
-    copyResult match {
-      case Success(()) => sendOkResponse(fileItem)
-      case Failure(HttpStatusException(message, HttpResponse(_, SERVICE_UNAVAILABLE_503, _))) => ServiceUnavailable(message)
-      case Failure(HttpStatusException(message, HttpResponse(_, REQUEST_TIMEOUT_408, _))) => RequestTimeout(message)
-      case Failure(HttpStatusException(_, HttpResponse(_, NOT_FOUND_404, _))) => NotFound(s"not found: $uuid/$path")
-      case Failure(NotAccessibleException(message)) => Forbidden(message)
-      case Failure(_: FileNotFoundException) => NotFound(s"not found: $uuid/$path") // in fact: not visible
-      case Failure(t) =>
-        logger.error(t.getMessage, t)
-        InternalServerError("not expected exception")
-    }
+  // overlap between errors from easy-auth-info and easy-bag-store is covered in this one function
+  private def recoverAuthInfoOrDownload(uuid: UUID, path: Path)(e: Throwable): ActionResult = e match {
+    case HttpStatusException(message, HttpResponse(_, SERVICE_UNAVAILABLE_503, _)) => ServiceUnavailable(message)
+    case HttpStatusException(message, HttpResponse(_, REQUEST_TIMEOUT_408, _)) => RequestTimeout(message)
+    case HttpStatusException(_, HttpResponse(_, NOT_FOUND_404, _)) => NotFound(s"not found: $uuid/$path")
+    case NotAccessibleException(message) => Forbidden(message)
+    case _: FileNotFoundException => NotFound(s"not found: $uuid/$path") // in fact: not visible
+    case t =>
+      logger.error(t.getMessage, t)
+      InternalServerError("not expected exception")
   }
 
-  private def sendOkResponse(fileItem: Try[FileItem]) = {
-    getLicenseLinkText(fileItem).foreach(response.addHeader("Link", _))
+  private def sendOkResponse(fileItem: FileItem) = {
+    response.addHeader("Link", getLicenseLinkText(fileItem))
     Ok()
   }
 
-  private def getLicenseLinkText(fileItem: Try[FileItem]): Option[String] = {
-    fileItem.map(file => Some(s"""<${ file.licenseKey }>; rel="license"; title="${ file.licenseTitle }"""")).getOrElse(None)
+  private def getLicenseLinkText(fileItem: FileItem): String = {
+    s"""<${ fileItem.licenseKey }>; rel="license"; title="${ fileItem.licenseTitle }""""
   }
 }
