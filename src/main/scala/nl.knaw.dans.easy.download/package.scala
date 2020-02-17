@@ -56,6 +56,16 @@ package object download extends DebugEnhancedLogging {
     logger.info(cause.getMessage)
   }
 
+  case class AuthorisationNotAvailableException(cause: Throwable)
+    extends Exception(cause.getMessage, cause) {
+    logger.info(cause.getMessage)
+  }
+
+  case class ServiceNotAvailableException(cause: Throwable)
+    extends Exception(cause.getMessage, cause) {
+    logger.info(cause.getMessage)
+  }
+
   implicit class RichString(val s: String) extends AnyVal {
 
     // TODO candidate for dans-scala-lib
