@@ -15,16 +15,17 @@
  */
 package nl.knaw.dans.easy.download.components
 
-import java.net.URI
+import java.net.{ ConnectException, URI }
 import java.nio.file.Path
 import java.util.UUID
-
+import org.eclipse.jetty.http.HttpStatus._
 import nl.knaw.dans.easy.download._
 import nl.knaw.dans.lib.encode.PathEncoding
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.json4s._
+import scalaj.http.HttpResponse
 
-import scala.util.Try
+import scala.util.{ Failure, Try }
 
 trait AuthorisationComponent extends DebugEnhancedLogging {
   this: HttpWorkerComponent =>
@@ -45,6 +46,9 @@ trait AuthorisationComponent extends DebugEnhancedLogging {
         _ = logger.debug(s"auth-info: ${ jsonOneLiner }")
         fileItem <- FileItem.fromJson(jsonOneLiner)
       } yield fileItem
+    }.recoverWith {
+      case e: ConnectException => Failure(AuthorisationNotAvailableException(e))
+      case e @ HttpStatusException(_, HttpResponse(_, SERVICE_UNAVAILABLE_503, _)) => Failure(ServiceNotAvailableException(e))
     }
   }
 }

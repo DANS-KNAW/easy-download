@@ -110,6 +110,8 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet
 
   // overlap between errors from easy-auth-info and easy-bag-store is covered in this one function
   private def recoverAuthInfoOrDownload(uuid: UUID, path: Path)(e: Throwable): ActionResult = e match {
+    case ServiceNotAvailableException(e) => ServiceUnavailable(e.getMessage)
+    case AuthorisationNotAvailableException(e) => ServiceUnavailable(e.getMessage)
     case HttpStatusException(message, HttpResponse(_, SERVICE_UNAVAILABLE_503, _)) => ServiceUnavailable(message)
     case HttpStatusException(message, HttpResponse(_, REQUEST_TIMEOUT_408, _)) => RequestTimeout(message)
     case HttpStatusException(_, HttpResponse(_, NOT_FOUND_404, _)) => NotFound(s"not found: $uuid/$path")
