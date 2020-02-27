@@ -58,18 +58,18 @@ class EasyDownloadServlet(app: EasyDownloadApp) extends ScalatraServlet
   }
 
   private def getUUID = {
-    correctHyphenation(params("uuid")).toUUID.toTry
+   params("uuid").toUUID.toTry
   }
 
-  private def correctHyphenation(uuid: String): String = {
-    // In ARK identifiers hyphens are considered to be insignificant, that is why we here
-    // add the hyphens to a uuid string that doesn't contain any hyphens and whose length is 32 characters
-    // (lenghth of a valid UUID without hyphens).
-    if (!uuid.contains("-") && uuid.length == 32)
-      s"${ uuid.slice(0, 8) }-${ uuid.slice(8, 12) }-${ uuid.slice(12, 16) }-${ uuid.slice(16, 20) }-${ uuid.slice(20, 32) }"
-    else
-      uuid
-  }
+//  private def correctHyphenation(uuid: String): String = {
+//    // In ARK identifiers hyphens are considered to be insignificant, that is why we here
+//    // add the hyphens to a uuid string that doesn't contain any hyphens and whose length is 32 characters
+//    // (lenghth of a valid UUID without hyphens).
+//    if (!uuid.contains("-") && uuid.length == 32)
+//      s"${ uuid.slice(0, 8) }-${ uuid.slice(8, 12) }-${ uuid.slice(12, 16) }-${ uuid.slice(16, 20) }-${ uuid.slice(20, 32) }"
+//    else
+//      uuid
+//  }
 
   private def getPath = Try {
     multiParams("splat").find(!_.trim.isEmpty).map(Paths.get(_))
