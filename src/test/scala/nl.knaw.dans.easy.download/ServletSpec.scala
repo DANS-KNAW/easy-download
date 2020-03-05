@@ -242,29 +242,12 @@ class ServletSpec extends TestSupportFixture with EmbeddedJettyContainer
     }
   }
 
-  it should "accept uuid without hyphens" in {
+  it should "not accept uuid without hyphens" in {
     val uuidWithoutHyphens = uuid.toString.replace("-", "")
     val path = Paths.get("data/some.file")
-    expectAuthentication(0)
-    expectDownloadStream(uuid, path) returning (os => {
-      os().write(s"content of $uuid/$path ")
-      Success(())
-    })
-    expectLoadDdm(uuid) returning Try(datasetXml)
-    expectAuthorisation(path) returning Success(
-      s"""{
-         |  "itemId":"$uuid/$path",
-         |  "owner":"someone",
-         |  "dateAvailable":"1992-07-30",
-         |  "accessibleTo":"ANONYMOUS",
-         |  "visibleTo":"ANONYMOUS",
-         |  "licenseKey":"",
-         |  "licenseTitle":""
-         |}""".stripMargin
-    )
     get(s"ark:/$naan/$uuidWithoutHyphens/$path") {
-      body shouldBe s"content of $uuid/$path "
-      status shouldBe OK_200
+      body should include("is not a UUID")
+      status shouldBe NOT_FOUND_404
     }
   }
 

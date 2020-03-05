@@ -37,15 +37,16 @@ paths:
       summary: Returns the file specified by the file-id.
       description: |
         The file which is fetched is specified by the file-id.
-        The file-id is defined as the bag-id followed by the percent encoded relative path of the file in the bag.
-        In ARK (Archival Resource Key) Identifiers hyphens are considered to be insignificant. If the hyphens are missing in the bag-id,
-        the service will add them automatically. But if the bag-id contains hyphens, then it will be validated as such.
-        This service requires the item-id to refer to a payload file, it is unable to download directories and non-payload files:
+        The file-id is defined as the bag-id followed by the [percent encoded relative path of the file in the bag](https://dans-knaw.github.io/easy-bag-store/definitions/#item-id).
 
+        This service deviates from the [ARK-specs](https://n2t.net/e/arkspec.txt) in that the hyphens in the UUID part of URL *are* mandatory.
         ```
         example valid file-ids:
          40594b6d-8378-4260-b96b-13b57beadf7c/path/to/file
          40594b6d-8378-4260-b96b-13b57beadf7c/path/to/another%20file
+
+        not accepted, though it would be equivalent according to ARK:
+         40594b6d83784260b96b13b57beadf7c/path/to/file
          40594b6d83784260b96b13b57beadf7c/path/to/another%20file
         ```
 
