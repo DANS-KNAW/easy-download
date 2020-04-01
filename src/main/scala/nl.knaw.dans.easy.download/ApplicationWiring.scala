@@ -26,7 +26,8 @@ trait ApplicationWiring extends HttpWorkerComponent
   with HttpContext
   with AuthorisationComponent
   with AuthenticationComponent
-  with BagStoreComponent {
+  with BagStoreComponent
+  with PermissionRequestComponent with FedoraPermissionRequestComponent with FedoraComponent {
 
   /**
    * the application configuration
@@ -43,6 +44,10 @@ trait ApplicationWiring extends HttpWorkerComponent
     logger.info(s"BagStore: baseUri = $baseUri")
   }
 
+  override val fedora: Fedora = new Fedora {
+    // TODO configuration
+  }
+
   override val authorisation: Authorisation = new Authorisation {
     override val baseUri: URI = new URI(configuration.properties.getString("auth-info.url"))
     logger.info(s"Authorisation: baseUri = $baseUri")
@@ -54,4 +59,6 @@ trait ApplicationWiring extends HttpWorkerComponent
     logger.info(s"Authentication: ldapProviderUrl = $ldapProviderUrl")
     logger.info(s"Authentication: ldapUsersEntry = $ldapUsersEntry")
   }
+
+  override val permissionRequest: PermissionRequest = new FedoraPermissionRequest {}
 }

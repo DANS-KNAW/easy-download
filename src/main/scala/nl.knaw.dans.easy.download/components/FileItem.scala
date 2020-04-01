@@ -15,18 +15,15 @@
  */
 package nl.knaw.dans.easy.download.components
 
-import java.io.FileNotFoundException
 import java.text.SimpleDateFormat
 
-import nl.knaw.dans.easy.download.NotAccessibleException
 import nl.knaw.dans.easy.download.components.RightsFor._
 import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormat
 import org.json4s._
 import org.json4s.ext.{ EnumNameSerializer, JodaTimeSerializers }
 import org.json4s.native.JsonMethods.parse
 
-import scala.util.{ Failure, Success, Try }
+import scala.util.{ Failure, Try }
 
 /**
  * @param itemId uuid of the bag + path of payload item from files.xml
@@ -40,32 +37,13 @@ case class FileItem(itemId: String,
                     licenseKey: String,
                     licenseTitle: String,
                    ) {
-  def availableFor(user: Option[User]): Try[Unit] = {
-    if (isOwnedBy(user)) Success(())
-    else if (!isVisibleTo(user)) Failure(new FileNotFoundException(itemId))
-    else if (dateAvailable.isAfterNow) embagroFailure
-    else if (accessibleTo == ANONYMOUS) Success(())
-    else if (accessibleTo == KNOWN)
-           if (user.isDefined) Success(())
-           else Failure(NotAccessibleException(s"Please login to download: $itemId"))
-    else Failure(NotAccessibleException(s"Download not allowed of: $itemId")) // might require group/permission
-  }
 
   def isOpenAccess: Boolean = {
     accessibleTo == ANONYMOUS
   }
 
-  private def isOwnedBy(user: Option[User]): Boolean = {
-    user.exists(_.id == owner)
-  }
-
-  private def isVisibleTo(user: Option[User]): Boolean = {
+  def isVisibleTo(user: Option[User]): Boolean = {
     visibleTo == ANONYMOUS || (visibleTo == KNOWN && user.isDefined)
-  }
-
-  private def embagroFailure = {
-    val date = DateTimeFormat.forPattern("yyyy-MM-dd").print(dateAvailable)
-    Failure(NotAccessibleException(s"Download becomes available on $date [$itemId]"))
   }
 }
 

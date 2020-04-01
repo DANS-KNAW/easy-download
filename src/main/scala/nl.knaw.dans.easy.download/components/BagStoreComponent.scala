@@ -19,13 +19,12 @@ import java.net.{ URI, URL }
 import java.nio.file.{ Path, Paths }
 import java.util.UUID
 
-import nl.knaw.dans.easy.download.{ HttpStatusException, OutputStreamProvider }
+import nl.knaw.dans.easy.download.OutputStreamProvider
 import nl.knaw.dans.lib.encode.PathEncoding
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import scalaj.http.Http
 
-import scala.util.{ Failure, Success, Try }
-import scala.xml.{ Elem, XML }
+import scala.util.Try
+import scala.xml.Elem
 
 trait BagStoreComponent extends DebugEnhancedLogging {
   this: HttpWorkerComponent =>
